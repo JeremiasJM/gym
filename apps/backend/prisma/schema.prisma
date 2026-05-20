@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Alumno {
+  id            String    @id @default(cuid())
+  dni           String    @unique
+  nombre        String
+  apellido      String
+  activo        Boolean   @default(true)
+  profesorId    String?
+  profesor      Profesor? @relation(fields: [profesorId], references: [id])
+  clasesTotal   Int       @default(0)
+  clasesUsadas  Int       @default(0)
+  pagado        Boolean   @default(false)
+  fechaPago     DateTime?
+  ingresos      Ingreso[]
+  creadoEn      DateTime  @default(now())
+  actualizadoEn DateTime  @updatedAt
+
+  @@index([profesorId])
+  @@index([dni])
+}
+
+model Profesor {
+  id       String   @id @default(cuid())
+  dni      String   @unique
+  nombre   String
+  apellido String
+  usuario  Usuario?
+  alumnos  Alumno[]
+}
+
+model Usuario {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  password   String
+  rol        Rol      @default(PROFESOR)
+  profesorId String?  @unique
+  profesor   Profesor? @relation(fields: [profesorId], references: [id])
+  creadoEn   DateTime @default(now())
+}
+
+model Ingreso {
+  id        String        @id @default(cuid())
+  alumnoId  String
+  alumno    Alumno        @relation(fields: [alumnoId], references: [id])
+  fechaHora DateTime      @default(now())
+  estado    EstadoIngreso
+  molinete  Int           @default(1)
+
+  @@index([alumnoId])
+  @@index([fechaHora])
+}
+
+model ConfigSistema {
+  id             String @id @default("global")
+  clasesGracia   Int    @default(2)
+  diaVencimiento Int    @default(5)
+}
+
+enum Rol {
+  ADMIN
+  PROFESOR
+}
+
+enum EstadoIngreso {
+  VERDE
+  AMARILLO
+  ROJO
+}
