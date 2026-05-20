@@ -8,6 +8,7 @@ import { AlumnosPage } from '@/pages/admin/AlumnosPage';
 import { ClasesPagosPage } from '@/pages/admin/ClasesPagosPage';
 import { ConfigPage } from '@/pages/admin/ConfigPage';
 import { MolinetesPage } from '@/pages/admin/MolinetesPage';
+import { KioscoPage } from '@/pages/KioscoPage';
 import { ProfesorDashboard } from '@/pages/ProfesorDashboard';
 
 export function App() {
@@ -21,6 +22,7 @@ export function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/kiosco" element={<KioscoPage />} />
 
         {/* Admin routes with sidebar layout */}
         <Route
