@@ -1,12 +1,54 @@
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuthStore } from '@/stores/auth.store';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { LoginPage } from '@/pages/LoginPage';
+import { AdminDashboard } from '@/pages/AdminDashboard';
+import { ProfesorDashboard } from '@/pages/ProfesorDashboard';
+
 export function App() {
+  const { hydrate, usuario } = useAuthStore();
+
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-cefide-accent">CEFIDE</h1>
-        <p className="mt-2 text-cefide-muted">
-          Sistema de Control de Acceso
-        </p>
-      </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+
+        <Route
+          path="/admin/*"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profesor/*"
+          element={
+            <ProtectedRoute allowedRoles={['PROFESOR']}>
+              <ProfesorDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Root redirect based on auth state */}
+        <Route
+          path="/"
+          element={
+            usuario
+              ? <Navigate to={usuario.rol === 'ADMIN' ? '/admin' : '/profesor'} replace />
+              : <Navigate to="/login" replace />
+          }
+        />
+
+        {/* Catch-all */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
