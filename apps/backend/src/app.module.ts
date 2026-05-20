@@ -7,6 +7,8 @@ import { AlumnosModule } from './alumnos/alumnos.module';
 import { ProfesoresModule } from './profesores/profesores.module';
 import { AccesoModule } from './acceso/acceso.module';
 import { MolineteModule } from './molinete/molinete.module';
+import { IngresosModule } from './ingresos/ingresos.module';
+import { ReportesModule } from './reportes/reportes.module';
 import { ConfigSistemaModule } from './config-sistema/config-sistema.module';
 import { HealthController } from './health.controller';
 
@@ -23,6 +25,8 @@ import { HealthController } from './health.controller';
     ProfesoresModule,
     AccesoModule,
     MolineteModule,
+    IngresosModule,
+    ReportesModule,
     ConfigSistemaModule,
   ],
   controllers: [HealthController],

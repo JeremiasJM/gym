@@ -8,6 +8,8 @@ import { AlumnosPage } from '@/pages/admin/AlumnosPage';
 import { ClasesPagosPage } from '@/pages/admin/ClasesPagosPage';
 import { ConfigPage } from '@/pages/admin/ConfigPage';
 import { MolinetesPage } from '@/pages/admin/MolinetesPage';
+import { IngresosLogPage } from '@/pages/admin/IngresosLogPage';
+import { ReportePage } from '@/pages/admin/ReportePage';
 import { KioscoPage } from '@/pages/KioscoPage';
 import { ProfesorDashboard } from '@/pages/ProfesorDashboard';
 
@@ -37,6 +39,8 @@ export function App() {
           <Route path="alumnos" element={<AlumnosPage />} />
           <Route path="clases-pagos" element={<ClasesPagosPage />} />
           <Route path="molinetes" element={<MolinetesPage />} />
+          <Route path="ingresos" element={<IngresosLogPage />} />
+          <Route path="reportes" element={<ReportePage />} />
           <Route path="config" element={<ConfigPage />} />
         </Route>
 
