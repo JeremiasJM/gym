@@ -1,5 +1,6 @@
 import {
   Controller,
+  ForbiddenException,
   Get,
   Post,
   Put,
@@ -14,6 +15,8 @@ import { Request } from 'express';
 import { AlumnosService } from './alumnos.service';
 import { CreateAlumnoDto } from './dto/create-alumno.dto';
 import { UpdateAlumnoDto } from './dto/update-alumno.dto';
+import { AsignarClasesDto } from './dto/asignar-clases.dto';
+import { RegistrarPagoDto } from './dto/registrar-pago.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard, Roles } from '../auth/guards/roles.guard';
 import { Rol } from '@prisma/client';
@@ -61,7 +64,7 @@ export class AlumnosController {
 
     // Profesor solo puede ver sus propios alumnos
     if (user.rol === Rol.PROFESOR && alumno.profesorId !== user.profesorId) {
-      throw new Error('No autorizado');
+      throw new ForbiddenException('No autorizado a ver este alumno');
     }
 
     return alumno;
@@ -89,5 +92,17 @@ export class AlumnosController {
   @Roles(Rol.ADMIN)
   activate(@Param('id') id: string) {
     return this.alumnosService.activate(id);
+  }
+
+  @Patch(':id/clases')
+  @Roles(Rol.ADMIN)
+  asignarClases(@Param('id') id: string, @Body() dto: AsignarClasesDto) {
+    return this.alumnosService.asignarClases(id, dto.clasesTotal);
+  }
+
+  @Patch(':id/pago')
+  @Roles(Rol.ADMIN)
+  registrarPago(@Param('id') id: string, @Body() dto: RegistrarPagoDto) {
+    return this.alumnosService.registrarPago(id, dto.pagado);
   }
 }

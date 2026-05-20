@@ -1,11 +1,13 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Users, LogOut } from 'lucide-react';
+import { Users, BookOpen, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth.store';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/admin/alumnos', label: 'Alumnos', icon: Users },
+  { to: '/admin/clases-pagos', label: 'Clases y Pagos', icon: BookOpen },
+  { to: '/admin/config', label: 'Configuración', icon: Settings },
 ];
 
 export function AdminLayout() {

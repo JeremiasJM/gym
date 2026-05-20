@@ -5,6 +5,8 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { AdminLayout } from '@/components/AdminLayout';
 import { LoginPage } from '@/pages/LoginPage';
 import { AlumnosPage } from '@/pages/admin/AlumnosPage';
+import { ClasesPagosPage } from '@/pages/admin/ClasesPagosPage';
+import { ConfigPage } from '@/pages/admin/ConfigPage';
 import { ProfesorDashboard } from '@/pages/ProfesorDashboard';
 
 export function App() {
@@ -30,6 +32,8 @@ export function App() {
         >
           <Route index element={<Navigate to="alumnos" replace />} />
           <Route path="alumnos" element={<AlumnosPage />} />
+          <Route path="clases-pagos" element={<ClasesPagosPage />} />
+          <Route path="config" element={<ConfigPage />} />
         </Route>
 
         <Route

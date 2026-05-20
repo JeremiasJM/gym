@@ -131,4 +131,46 @@ export class AlumnosService {
       data: { activo: true },
     });
   }
+
+  async asignarClases(id: string, clasesTotal: number) {
+    await this.findOne(id);
+    return this.prisma.alumno.update({
+      where: { id },
+      data: { clasesTotal, clasesUsadas: 0 },
+      include: {
+        profesor: { select: { id: true, nombre: true, apellido: true } },
+      },
+    });
+  }
+
+  async registrarPago(id: string, pagado: boolean) {
+    await this.findOne(id);
+    return this.prisma.alumno.update({
+      where: { id },
+      data: {
+        pagado,
+        fechaPago: pagado ? new Date() : null,
+      },
+      include: {
+        profesor: { select: { id: true, nombre: true, apellido: true } },
+      },
+    });
+  }
+
+  /**
+   * Renovación mensual: reset clases usadas y estado de pago
+   * Se ejecuta vía cron el lunes siguiente al día 30/31
+   */
+  async renovacionMensual() {
+    const result = await this.prisma.alumno.updateMany({
+      where: { activo: true },
+      data: {
+        clasesUsadas: 0,
+        pagado: false,
+        fechaPago: null,
+      },
+    });
+
+    return { renovados: result.count };
+  }
 }
