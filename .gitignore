@@ -24,6 +24,10 @@ Thumbs.db
 # Prisma
 apps/backend/prisma/migrations/*.sql.bak
 
+# Migration data (real data, not examples)
+apps/backend/prisma/migracion/data/alumnos.csv
+apps/backend/prisma/migracion/data/profesores.csv
+
 # Docker
 pgdata/
 

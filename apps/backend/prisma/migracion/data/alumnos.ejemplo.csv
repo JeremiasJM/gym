@@ -1,0 +1,5 @@
+dni;nombre;apellido;profesor_dni;activo;clases_total;clases_usadas;pagado
+12345678;María;González;87654321;1;8;3;si
+23456789;Carlos;López;87654321;1;12;0;no
+34567890;Ana;Martínez;;1;8;8;si
+45678901;Pedro;Rodríguez;87654321;0;0;0;no
