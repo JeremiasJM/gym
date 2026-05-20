@@ -7,6 +7,7 @@ import { LoginPage } from '@/pages/LoginPage';
 import { AlumnosPage } from '@/pages/admin/AlumnosPage';
 import { ClasesPagosPage } from '@/pages/admin/ClasesPagosPage';
 import { ConfigPage } from '@/pages/admin/ConfigPage';
+import { MolinetesPage } from '@/pages/admin/MolinetesPage';
 import { ProfesorDashboard } from '@/pages/ProfesorDashboard';
 
 export function App() {
@@ -33,6 +34,7 @@ export function App() {
           <Route index element={<Navigate to="alumnos" replace />} />
           <Route path="alumnos" element={<AlumnosPage />} />
           <Route path="clases-pagos" element={<ClasesPagosPage />} />
+          <Route path="molinetes" element={<MolinetesPage />} />
           <Route path="config" element={<ConfigPage />} />
         </Route>
 
