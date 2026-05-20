@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth.store';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { AdminLayout } from '@/components/AdminLayout';
 import { LoginPage } from '@/pages/LoginPage';
-import { AdminDashboard } from '@/pages/AdminDashboard';
+import { AlumnosPage } from '@/pages/admin/AlumnosPage';
 import { ProfesorDashboard } from '@/pages/ProfesorDashboard';
 
 export function App() {
@@ -18,14 +19,18 @@ export function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 
+        {/* Admin routes with sidebar layout */}
         <Route
-          path="/admin/*"
+          path="/admin"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <AdminDashboard />
+              <AdminLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<Navigate to="alumnos" replace />} />
+          <Route path="alumnos" element={<AlumnosPage />} />
+        </Route>
 
         <Route
           path="/profesor/*"
@@ -36,7 +41,7 @@ export function App() {
           }
         />
 
-        {/* Root redirect based on auth state */}
+        {/* Root redirect */}
         <Route
           path="/"
           element={
@@ -46,7 +51,6 @@ export function App() {
           }
         />
 
-        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
