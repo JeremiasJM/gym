@@ -4,7 +4,7 @@ RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 WORKDIR /app
 
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
+COPY .npmrc pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
 COPY apps/frontend/package.json apps/frontend/
 
 RUN pnpm install --filter frontend...

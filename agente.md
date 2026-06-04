@@ -32,7 +32,7 @@ Respetar estrictamente la Guía de Desarrollo Fullmindtech:
 - **Backend:** Node.js con NestJS + TypeScript
 - **Base de datos:** PostgreSQL
 - **ORM:** Prisma (migraciones obligatorias, NUNCA cambios manuales en DB)
-- **Frontend:** React + Vite + TypeScript
+pe- **Frontend:** React + Vite + TypeScript
 - **Estilos:** Tailwind CSS
 - **Componentes UI:** shadcn/ui
 - **Estado global:** Zustand

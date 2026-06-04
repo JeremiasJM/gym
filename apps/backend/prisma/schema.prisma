@@ -20,6 +20,7 @@ model Alumno {
   pagado        Boolean   @default(false)
   fechaPago     DateTime?
   ingresos      Ingreso[]
+  pagos         Pago[]
   creadoEn      DateTime  @default(now())
   actualizadoEn DateTime  @updatedAt
 
@@ -56,6 +57,23 @@ model Ingreso {
 
   @@index([alumnoId])
   @@index([fechaHora])
+}
+
+model Pago {
+  id        String   @id @default(cuid())
+  alumnoId  String
+  alumno    Alumno   @relation(fields: [alumnoId], references: [id])
+  tipo      TipoPago
+  fecha     DateTime @default(now())
+  nota      String?
+
+  @@index([alumnoId])
+  @@index([fecha])
+}
+
+enum TipoPago {
+  PAGO
+  ANULACION
 }
 
 model ConfigSistema {

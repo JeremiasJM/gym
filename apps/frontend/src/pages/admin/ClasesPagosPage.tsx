@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, DollarSign, BookOpen, Check, X } from 'lucide-react';
+import { Search, DollarSign, BookOpen, Check, X, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,8 @@ export function ClasesPagosPage() {
   // Inline edit state
   const [editingClases, setEditingClases] = useState<string | null>(null);
   const [clasesValue, setClasesValue] = useState('');
+  const [renovarId, setRenovarId] = useState<string | null>(null);
+  const [renovarValue, setRenovarValue] = useState('');
 
   const params = new URLSearchParams();
   if (search) params.set('search', search);
@@ -37,6 +39,19 @@ export function ClasesPagosPage() {
       token: token!,
     });
     setEditingClases(null);
+    mutate();
+  }
+
+  async function handleRenovar(id: string) {
+    const num = parseInt(renovarValue, 10);
+    if (isNaN(num) || num < 1) return;
+
+    await api(`/alumnos/${id}/renovar`, {
+      method: 'PATCH',
+      body: JSON.stringify({ clasesTotal: num }),
+      token: token!,
+    });
+    setRenovarId(null);
     mutate();
   }
 
@@ -159,29 +174,63 @@ export function ClasesPagosPage() {
                   {getEstadoBadge(alumno)}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <div className="flex justify-end gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setEditingClases(alumno.id);
-                        setClasesValue(String(alumno.clasesTotal));
-                      }}
-                      title="Asignar clases"
-                    >
-                      <BookOpen className="mr-1 h-4 w-4" />
-                      Clases
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleTogglePago(alumno)}
-                      title={alumno.pagado ? 'Marcar como no pagado' : 'Registrar pago'}
-                    >
-                      <DollarSign className="mr-1 h-4 w-4" />
-                      {alumno.pagado ? 'Anular pago' : 'Cobrar'}
-                    </Button>
-                  </div>
+                  {renovarId === alumno.id ? (
+                    <div className="flex items-center justify-end gap-1">
+                      <span className="text-xs text-cefide-muted mr-1">Nuevo total:</span>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={renovarValue}
+                        onChange={(e) => setRenovarValue(e.target.value)}
+                        className="w-20 h-8 text-center"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleRenovar(alumno.id);
+                          if (e.key === 'Escape') setRenovarId(null);
+                        }}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleRenovar(alumno.id)}
+                      >
+                        <Check className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setRenovarId(null)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setRenovarId(alumno.id);
+                          setRenovarValue(String(alumno.clasesTotal));
+                        }}
+                        title="Renovar clases (resetea usadas a 0)"
+                      >
+                        <RefreshCw className="mr-1 h-4 w-4" />
+                        Renovar
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleTogglePago(alumno)}
+                        title={alumno.pagado ? 'Marcar como no pagado' : 'Registrar pago'}
+                      >
+                        <DollarSign className="mr-1 h-4 w-4" />
+                        {alumno.pagado ? 'Anular pago' : 'Cobrar'}
+                      </Button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}

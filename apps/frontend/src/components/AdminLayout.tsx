@@ -1,12 +1,14 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Users, BookOpen, Zap, ClipboardList, BarChart3, Settings, LogOut } from 'lucide-react';
+import { Users, GraduationCap, BookOpen, Receipt, Zap, ClipboardList, BarChart3, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth.store';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/admin/alumnos', label: 'Alumnos', icon: Users },
+  { to: '/admin/profesores', label: 'Profesores', icon: GraduationCap },
   { to: '/admin/clases-pagos', label: 'Clases y Pagos', icon: BookOpen },
+  { to: '/admin/pagos', label: 'Historial Pagos', icon: Receipt },
   { to: '/admin/molinetes', label: 'Molinetes', icon: Zap },
   { to: '/admin/ingresos', label: 'Log Ingresos', icon: ClipboardList },
   { to: '/admin/reportes', label: 'Reportes', icon: BarChart3 },

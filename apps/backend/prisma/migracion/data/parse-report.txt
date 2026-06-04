@@ -1,0 +1,212 @@
+══════════════════════════════════════════════════
+Parser VERSION8 CLI.ASC — 2026-06-03T14:44:08.819Z
+══════════════════════════════════════════════════
+
+DNI DUPLICADO: 13587859 — Defelippo, Mirta (cod 773)
+DNI DUPLICADO: 31152785 — Nazziconi, Ma.lujan (cod 7716)
+DNI DUPLICADO: 26800491 — Lopez, Ma. Guadalupe(a2) (cod 8359)
+DNI DUPLICADO: 27121086 — Piva, M Eugenia/aero (cod 10964)
+DNI DUPLICADO: 30572255 — Almada, Maria Lujan (cod 11824)
+DNI DUPLICADO: 32594786 — Pereyra, Mariana (cod 12093)
+DNI DUPLICADO: 33499540 — Noguera, Ximena (cod 17126)
+DNI DUPLICADO: 24192277 — Arce, Debora(a2) (cod 17232)
+DNI DUPLICADO: 16879664 — Cikes, Marcela(a2) (cod 17249)
+DNI DUPLICADO: 37399146 — Lacomba, Maria Aero (cod 17313)
+DNI DUPLICADO: 33803794 — Nozzi, Belen(a2) (cod 17319)
+DNI DUPLICADO: 21890778 — Sisevich, Laura/aero (cod 17337)
+DNI DUPLICADO: 21525839 — Sbaffo, Claudia/aero (cod 17383)
+DNI DUPLICADO: 4258156 — Ramb, Ana/aero (cod 17462)
+DNI DUPLICADO: 32269589 — Keo, Daniel/escalada (cod 17476)
+DNI DUPLICADO: 23190852 — Armanasco, M.del Huerto (cod 17598)
+DNI DUPLICADO: 14545474 — Bellagamba, Gabriela/aero (cod 17640)
+DNI DUPLICADO: 28673492 — Carignani, Gabriela Aero (cod 17840)
+DNI DUPLICADO: 22435534 — Radwanski, Alejandra/aero (cod 17951)
+DNI DUPLICADO: 43589303 — Ledesma, Sarah*a2( (cod 18893)
+DNI DUPLICADO: 34109218 — Vergilito, Federico (cod 18957)
+DNI DUPLICADO: 42840090 — Villalba, Delfina (cod 18980)
+DNI DUPLICADO: 36261533 — Buyotti, Jesica(a2) (cod 19106)
+DNI DUPLICADO: 43313306 — Alcaraz, Emanuel A/sp (cod 19294)
+DNI DUPLICADO: 36238990 — Tomich, Facundo (cod 19347)
+DNI DUPLICADO: 37630515 — Perez, Garcia Joaquin (cod 19375)
+DNI DUPLICADO: 29261553 — Rojas, Vanesa(sp) (cod 19390)
+DNI DUPLICADO: 24210861 — Guido, Ma Soledad/aero (cod 19484)
+DNI DUPLICADO: 37389105 — Farias, Ma Macarena (cod 19494)
+DNI DUPLICADO: 35221230 — Lazos, Ma Fernanda (cod 19553)
+DNI DUPLICADO: 43983232 — Doyen, Candela (cod 19617)
+DNI DUPLICADO: 31629700 — Zayas, Carmen Vanina (cod 19644)
+DNI DUPLICADO: 26550127 — Kern, Pablo Cross Training (cod 19768)
+DNI DUPLICADO: 31994804 — Ines, Mariano/cross Traini (cod 19780)
+DNI DUPLICADO: 21525405 — Cairo, Javier Cross Traini (cod 19789)
+DNI DUPLICADO: 32620206 — Rocca, Soledad Cross T (cod 19791)
+DNI DUPLICADO: 34752693 — Cartey, Catalina Cross Tra (cod 19804)
+DNI DUPLICADO: 18863319 — Morzoli, Luciana (cod 19817)
+DNI DUPLICADO: 37824928 — Turchi, Ignacio Cross Trai (cod 19820)
+DNI DUPLICADO: 46483453 — Turchi, Paolo Cross Traini (cod 19824)
+DNI DUPLICADO: 23262147 — Bautista, Virginia/funcion (cod 19838)
+DNI DUPLICADO: 26126253 — Abud, Ma Eugenia/funcional (cod 19839)
+DNI DUPLICADO: 32620206 — Rocca, Soledad/funcional (cod 19840)
+DNI DUPLICADO: 22194250 — Garimaldi, Sebastian/funci (cod 19843)
+DNI DUPLICADO: 22435086 — De Felipe, Eduardo/funcion (cod 19844)
+DNI DUPLICADO: 22954274 — Domingo, Daniel/funcio (cod 19845)
+DNI DUPLICADO: 29772126 — Santillan, Ma Eugenia A2 (cod 19859)
+DNI DUPLICADO: 0809001 — Parodi, Sara/aero (cod 19885)
+DNI DUPLICADO: 43893103 — Maldonado, Lara (cod 19891)
+DNI DUPLICADO: 32606640 — Inocenti, Danilo (cod 19897)
+DNI DUPLICADO: 22170874 — Faine, Mariana/aero (cod 19906)
+DNI DUPLICADO: 22194250 — Garimaldi, Sebastian/cross (cod 19912)
+DNI DUPLICADO: 23262147 — Bautista, Virginia/cross.t (cod 19913)
+DNI DUPLICADO: 28771092 — Arburua, Jorgelina/cross.t (cod 19926)
+DNI DUPLICADO: 32620039 — Morales, Daniel/cross Tr. (cod 19933)
+DNI DUPLICADO: 27560726 — Marano, Federico Cross T (cod 19939)
+DNI DUPLICADO: 36261560 — Ariaca, Guillermo Cross T (cod 19940)
+DNI DUPLICADO: 19052153 — Chacon, Luis/cross Trainin (cod 19953)
+DNI DUPLICADO: 18424678 — Alvarez, Claudia (cod 19961)
+DNI DUPLICADO: 42542029 — Chiaraluce, Estanislao/cr (cod 20010)
+DNI DUPLICADO: 35184282 — Gobbi, Maria Florencia A2 (cod 20022)
+DNI DUPLICADO: 22435412 — Tizzano, Laura (cod 20024)
+DNI DUPLICADO: 36003181 — Vivas, Rodrigo Yamil (cod 20040)
+DNI DUPLICADO: 38292157 — Yovovich, Jonathan (cod 20045)
+DNI DUPLICADO: 38094280 — Marengo, Bruno Cross T (cod 20053)
+DNI DUPLICADO: 34935976 — Bravo, Estrada Romina(pr) (cod 20055)
+DNI DUPLICADO: 44318032 — Loscerbo, Franco/escalada (cod 20089)
+DNI DUPLICADO: 42780001 — Pereira, Esteban Cross T (cod 20117)
+DNI DUPLICADO: 27121859 — Carballido, Leticia/cross (cod 20118)
+DNI DUPLICADO: 35000806 — Salafia, Julian/aero (cod 20125)
+DNI DUPLICADO: 43590482 — Rubiola, Valentina (cod 20129)
+DNI DUPLICADO: 29772126 — Santillan, Ma Eugenia/aero (cod 20145)
+DNI DUPLICADO: 36894322 — Mulet, Bahiana/aero (cod 20148)
+DNI DUPLICADO: 34109309 — Defelippo, Maria/cross (cod 20161)
+DNI DUPLICADO: 37894872 — Linares, Leila Aero (cod 20171)
+DNI DUPLICADO: 37423974 — Jimena, Franco (cod 20199)
+DNI DUPLICADO: 17242155 — Gomez, Fernando Eduardo (cod 20240)
+DNI DUPLICADO: 27811364 — Miranda, Jose Angel (cod 20258)
+DNI DUPLICADO: 28929386 — Alfaro, Virginia/aero (cod 20269)
+DNI DUPLICADO: 30026007 — Aseff, M.florencia/cross T (cod 20302)
+DNI DUPLICADO: 25317947 — Bustos, Oscar (cod 20303)
+DNI DUPLICADO: 22753374 — Rodriguez, Ma.viviana (cod 20325)
+DNI DUPLICADO: 32620206 — Rocca, Soledad/aero (cod 20326)
+DNI DUPLICADO: 32658385 — Acevedo, Claudio (cod 20328)
+DNI DUPLICADO: 38836389 — Deleglise, Tomas (cod 20360)
+DNI DUPLICADO: 25715008 — Raffaele, Mara/cross Train (cod 20367)
+DNI DUPLICADO: 44867121 — Lima, Milagros(a2) (cod 20374)
+DNI DUPLICADO: 32534254 — Fernandez, Cecilia/cross T (cod 20388)
+DNI DUPLICADO: 28003485 — Barba, Liliana A2 (cod 20400)
+DNI DUPLICADO: 16843405 — Petri, Claudia(a2) (cod 20419)
+DNI DUPLICADO: 34300448 — Fumazoni, Florencia (cod 20466)
+DNI DUPLICADO: 34109480 — Correa, Gisela Funcional (cod 20478)
+DNI DUPLICADO: 33803955 — Picabea, Barbara (cod 20502)
+DNI DUPLICADO: 25016822 — Grams, Ligia (cod 20506)
+DNI DUPLICADO: 10026085 — Pedrazza, Mauricia [yoga] (cod 20529)
+DNI DUPLICADO: 45811418 — Cartey, Pilar (cod 20558)
+DNI DUPLICADO: 38398503 — Long, Ignacio [cross] (cod 20560)
+DNI DUPLICADO: 29261433 — Acevedo, Eduardo /cross T (cod 20587)
+DNI DUPLICADO: 18116375 — Garavaglia, Fernanda (cod 20604)
+DNI DUPLICADO: 44667350 — Contreras, Catalina (cod 20611)
+DNI DUPLICADO: 32594681 — Torres, Ivana (cod 20632)
+DNI DUPLICADO: 24007889 — Beban, Soledad (cod 20680)
+DNI DUPLICADO: 34988077 — Degoycoechea, Gaston (cod 20690)
+DNI DUPLICADO: 38023428 — Jerez, Mercedes (cod 20715)
+DNI DUPLICADO: 27742638 — Baro, Natali/funcional (cod 20718)
+DNI DUPLICADO: 35000892 — Ingoglia, Agustina[yoga] (cod 20748)
+DNI DUPLICADO: 46893432 — Maiztegui, Inaki (cod 20754)
+DNI DUPLICADO: 38836389 — Deleglise, Tomas/funcional (cod 20770)
+DNI DUPLICADO: 27742638 — Baro, Natalia (cod 20783)
+DNI DUPLICADO: 38398547 — Gallo, Julieta/ Pr (cod 20795)
+DNI DUPLICADO: 3956562 — Rocha, Elchmeia (cod 20816)
+DNI DUPLICADO: 27560695 — Assi, Lorena [aero] (cod 20831)
+DNI DUPLICADO: 45987936 — Mugica, Manuel (cod 20844)
+DNI DUPLICADO: 18352704 — Gutierrez, Alejandro (cod 20858)
+DNI DUPLICADO: 32658341 — Diaz, Geronimo/cross (cod 20901)
+DNI DUPLICADO: 36549885 — Galeano, Lautaro [cros] (cod 20908)
+DNI DUPLICADO: 41899252 — Sassaroli, Yanella (cod 20927)
+DNI DUPLICADO: 37076093 — Diaz, Orlando Andres (cod 20955)
+DNI DUPLICADO: 33369661 — Isoardi, Agustin/cross (cod 20956)
+DNI DUPLICADO: 41453204 — Albitre, Federico/cross (cod 20958)
+DNI DUPLICADO: 21416412 — Primucci, Ramiro/funcional (cod 20966)
+DNI DUPLICADO: 36894172 — Lima, Gabriel/cross (cod 20971)
+DNI DUPLICADO: 33364816 — Maks, Natalia (cod 20976)
+DNI DUPLICADO: 36053691 — Turcutto, Fania A2 (cod 20981)
+DNI DUPLICADO: 28673774 — Parraga, Silvana (cod 21023)
+DNI DUPLICADO: 30557336 — Sturiale, Matias (cod 21051)
+DNI DUPLICADO: 18336303 — Magni, Javiera/cross (cod 21091)
+DNI DUPLICADO: 43983211 — Homs, Josefina /aero (cod 21092)
+DNI DUPLICADO: 16535399 — Aranda, German (cod 21095)
+DNI DUPLICADO: 28770520 — Magari¥os, Diego/cross (cod 21099)
+DNI DUPLICADO: 46093161 — Merlo, Augusto (cod 21104)
+DNI DUPLICADO: 47455268 — Campione, Josefina (cod 21116)
+
+=== Resumen ===
+Total registros parseados: 19544
+Con DNI válido:            2635
+Sin DNI (no exportados):   16777
+DNIs duplicados omitidos:  132
+Exportados a CSV:          2635
+
+=== Actividades CEFIDE detectadas ===
+  11702  APARATOS
+   4196  GIMNASIO
+   1934  AERO
+    520  SPINNING
+    229  KINESIOLOGIA
+    136  ESCALADA
+     83  YOGA
+     52  REHABILITACION
+     19  BOXEO
+     14  PERSONAL TRAINER
+     10  ZUMBA
+      4  PILATES
+      4  CROSS TRAINING
+      1  FUNCIONAL
+
+=== Registros SIN DNI (no exportados, necesitan carga manual) ===
+  cod 1: Alesio, Ana Paula — AERO
+  cod 2: Urrustoy, Juan Manuel — APARATOS
+  cod 3: Biava, Yamila A2 — AERO
+  cod 4: Bianco, Natalia A2 — AERO
+  cod 5: Cottarelli, Daniel — APARATOS
+  cod 6: Marani, Leandro — APARATOS
+  cod 7: Ceccoli, Monica — AERO
+  cod 9: Cattarossi, Fabiana — AERO
+  cod 10: Ghiselli, Santiago — APARATOS
+  cod 11: Catalin, Cecilia — AERO
+  cod 12: Cardinaus, Andrea — AERO
+  cod 13: Mangona, Carina — APARATOS
+  cod 14: Downes, Elizabeth — APARATOS
+  cod 16: Delmas, Mara — AERO
+  cod 18: Gisolfo, Stella Maris — AERO
+  cod 19: Gomez, Gabriela — AERO
+  cod 20: Lasalle, Ma Evangelina — AERO
+  cod 21: Lescano, Paula — AERO
+  cod 22: Larrenaga, Andrea — APARATOS
+  cod 23: Larrosa, Veronica — AERO
+  cod 24: Martin, Luciana — AERO
+  cod 25: Malacalza, Adriana — AERO
+  cod 26: Meijome, Veronica — AERO
+  cod 27: Mangialabori, Eleonora — APARATOS
+  cod 28: Magni, Romina — AERO
+  cod 29: Najera, Claudia — AERO
+  cod 30: Ottero, Claudia — AERO
+  cod 31: Oyola, Maria Griselda — AERO
+  cod 33: Pesarini, Jaquelin — AERO
+  cod 34: Primo, Sandra — AERO
+  cod 35: Petrella, Barbara — APARATOS
+  cod 36: Petrella, Maria Rosa — APARATOS
+  cod 37: Arpiani, Juan Pablo — APARATOS
+  cod 38: Tabellone, Carina — AERO
+  cod 40: Banderuk, Pablo Rene — APARATOS
+  cod 41: Nieto, Silvia — APARATOS
+  cod 42: Ottero, Natalia — AERO
+  cod 43: Rojas, Romina — APARATOS
+  cod 46: Ansio, Maria Eugenia(a2) — AERO
+  cod 47: D'adamo, Valeria — AERO
+  cod 48: Andrin, Carina — AERO
+  cod 49: Viroche, Abel — APARATOS
+  cod 50: Pe¥a, Silvina — APARATOS
+  cod 51: Alomar, Juan Carlos — APARATOS
+  cod 52: Varetti, Leonardo — APARATOS
+  cod 53: Ramos, Leonardo — APARATOS
+  cod 54: Garcia, Duran Silvia — APARATOS
+  cod 55: Reinoso, Gabriel — APARATOS
+  cod 56: Sanchez, Silvina — APARATOS
+  cod 57: Viscomi, Saverio — APARATOS
+  ... y 16727 más

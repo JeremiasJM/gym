@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { ReportesService } from './reportes.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard, Roles } from '../auth/guards/roles.guard';
 import { Rol } from '@prisma/client';
@@ -21,7 +22,10 @@ interface AuthUser {
 @Controller('reportes')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ReportesController {
-  constructor(private readonly reportesService: ReportesService) {}
+  constructor(
+    private readonly reportesService: ReportesService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Get('actividad')
   reporteActividad(
@@ -51,5 +55,63 @@ export class ReportesController {
       `attachment; filename="reporte-cefide-${fecha}.csv"`,
     );
     res.send(csv);
+  }
+
+  @Get('pagos')
+  @Roles(Rol.ADMIN)
+  async historialPagos(
+    @Query('search') search?: string,
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 20;
+    const skip = (pageNum - 1) * limitNum;
+
+    const where: any = {};
+
+    if (search) {
+      where.alumno = {
+        OR: [
+          { dni: { contains: search } },
+          { nombre: { contains: search, mode: 'insensitive' } },
+          { apellido: { contains: search, mode: 'insensitive' } },
+        ],
+      };
+    }
+
+    if (desde || hasta) {
+      where.fecha = {};
+      if (desde) where.fecha.gte = new Date(desde);
+      if (hasta) {
+        const hastaDate = new Date(hasta);
+        hastaDate.setHours(23, 59, 59, 999);
+        where.fecha.lte = hastaDate;
+      }
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.pago.findMany({
+        where,
+        include: {
+          alumno: {
+            select: { dni: true, nombre: true, apellido: true },
+          },
+        },
+        orderBy: { fecha: 'desc' },
+        skip,
+        take: limitNum,
+      }),
+      this.prisma.pago.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum),
+    };
   }
 }

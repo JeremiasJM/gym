@@ -150,7 +150,7 @@ async function migrarAlumnos(profesorMap: Map<string, string>): Promise<void> {
     const row = rows[i];
     const lineNum = i + 2;
 
-    // Mapeo de campos — ajustar según estructura real de VERSION8
+    // Mapeo de campos — soporta formato VERSION8 parser y CSV manual
     const dniRaw = row['dni'] || row['documento'] || row['nro_doc'] || row['doc'] || '';
     const nombre = row['nombre'] || row['name'] || '';
     const apellido = row['apellido'] || row['surname'] || row['last_name'] || '';
@@ -159,6 +159,11 @@ async function migrarAlumnos(profesorMap: Map<string, string>): Promise<void> {
     const clasesTotal = parseInt(row['clases_total'] || row['clases'] || '0', 10);
     const clasesUsadas = parseInt(row['clases_usadas'] || row['clases_realizadas'] || '0', 10);
     const pagado = row['pagado'] || row['pago'] || '';
+    // Campos extra de VERSION8 parser (informativos, no se usan en Alumno actual)
+    const _actividad = row['actividad'] || '';
+    const _domicilio = row['domicilio'] || '';
+    const _telefono = row['telefono'] || '';
+    const _localidad = row['localidad'] || '';
 
     // Validar DNI
     const dni = normalizeDni(dniRaw);

@@ -1,10 +1,15 @@
 import { Controller, Post, Body } from '@nestjs/common';
+import { IsString, IsOptional, IsInt } from 'class-validator';
 import { AccesoService } from './acceso.service';
 import { MolineteService } from '../molinete/molinete.service';
 import { EstadoIngreso } from '@prisma/client';
 
 class ValidarAccesoDto {
+  @IsString()
   dni: string;
+
+  @IsOptional()
+  @IsInt()
   molinete?: number;
 }
 

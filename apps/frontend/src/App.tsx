@@ -10,6 +10,8 @@ import { ConfigPage } from '@/pages/admin/ConfigPage';
 import { MolinetesPage } from '@/pages/admin/MolinetesPage';
 import { IngresosLogPage } from '@/pages/admin/IngresosLogPage';
 import { ReportePage } from '@/pages/admin/ReportePage';
+import { ProfesoresPage } from '@/pages/admin/ProfesoresPage';
+import { PagosLogPage } from '@/pages/admin/PagosLogPage';
 import { KioscoPage } from '@/pages/KioscoPage';
 import { ProfesorDashboard } from '@/pages/ProfesorDashboard';
 
@@ -37,7 +39,9 @@ export function App() {
         >
           <Route index element={<Navigate to="alumnos" replace />} />
           <Route path="alumnos" element={<AlumnosPage />} />
+          <Route path="profesores" element={<ProfesoresPage />} />
           <Route path="clases-pagos" element={<ClasesPagosPage />} />
+          <Route path="pagos" element={<PagosLogPage />} />
           <Route path="molinetes" element={<MolinetesPage />} />
           <Route path="ingresos" element={<IngresosLogPage />} />
           <Route path="reportes" element={<ReportePage />} />

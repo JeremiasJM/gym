@@ -100,9 +100,21 @@ export class AlumnosController {
     return this.alumnosService.asignarClases(id, dto.clasesTotal);
   }
 
+  @Patch(':id/renovar')
+  @Roles(Rol.ADMIN)
+  renovarClases(@Param('id') id: string, @Body() dto: AsignarClasesDto) {
+    return this.alumnosService.renovarClases(id, dto.clasesTotal);
+  }
+
   @Patch(':id/pago')
   @Roles(Rol.ADMIN)
   registrarPago(@Param('id') id: string, @Body() dto: RegistrarPagoDto) {
     return this.alumnosService.registrarPago(id, dto.pagado);
+  }
+
+  @Get(':id/pagos')
+  @Roles(Rol.ADMIN)
+  historialPagos(@Param('id') id: string) {
+    return this.alumnosService.historialPagos(id);
   }
 }

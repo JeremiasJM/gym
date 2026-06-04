@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Delete,
   Param,
   Body,
@@ -9,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ProfesoresService } from './profesores.service';
 import { CreateProfesorDto } from './dto/create-profesor.dto';
+import { UpdateProfesorDto } from './dto/update-profesor.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard, Roles } from '../auth/guards/roles.guard';
 import { Rol } from '@prisma/client';
@@ -32,6 +34,11 @@ export class ProfesoresController {
   @Post()
   create(@Body() dto: CreateProfesorDto) {
     return this.profesoresService.create(dto);
+  }
+
+  @Put(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateProfesorDto) {
+    return this.profesoresService.update(id, dto);
   }
 
   @Delete(':id')

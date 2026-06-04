@@ -25,9 +25,12 @@ interface ReporteAlumno {
   fechaPago: string | null;
 }
 
+const PAGE_SIZE = 20;
+
 export function ReportePage() {
   const token = useAuthStore((s) => s.token);
   const [filterProfesor, setFilterProfesor] = useState('all');
+  const [page, setPage] = useState(1);
 
   const params = new URLSearchParams();
   if (filterProfesor !== 'all') params.set('profesorId', filterProfesor);
@@ -37,11 +40,14 @@ export function ReportePage() {
   );
   const { data: profesores } = useApiGet<Profesor[]>('/profesores');
 
+  const total = data?.length ?? 0;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const paginated = data?.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) ?? [];
+
   function handleExportCsv() {
     const csvParams = new URLSearchParams();
     if (filterProfesor !== 'all') csvParams.set('profesorId', filterProfesor);
 
-    // Download via fetch with auth header
     const url = `/api/reportes/actividad/csv?${csvParams.toString()}`;
     fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
@@ -74,7 +80,13 @@ export function ReportePage() {
         </Button>
       </div>
 
-      <Select value={filterProfesor} onValueChange={setFilterProfesor}>
+      <Select
+        value={filterProfesor}
+        onValueChange={(v) => {
+          setFilterProfesor(v);
+          setPage(1);
+        }}
+      >
         <SelectTrigger className="w-[250px]">
           <SelectValue placeholder="Todos los profesores" />
         </SelectTrigger>
@@ -102,7 +114,7 @@ export function ReportePage() {
             </tr>
           </thead>
           <tbody>
-            {data?.map((item) => (
+            {paginated.map((item) => (
               <tr key={item.dni} className="border-b border-cefide-border hover:bg-cefide-surface/50">
                 <td className="px-4 py-3 font-mono">{item.dni}</td>
                 <td className="px-4 py-3">{item.apellido}, {item.nombre}</td>
@@ -117,7 +129,7 @@ export function ReportePage() {
                 <td className="px-4 py-3 text-center">{getEstadoBadge(item)}</td>
               </tr>
             ))}
-            {data?.length === 0 && (
+            {total === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-8 text-center text-cefide-muted">
                   Sin datos
@@ -128,11 +140,24 @@ export function ReportePage() {
         </table>
       </div>
 
-      {data && (
+      <div className="flex items-center justify-between">
         <p className="text-sm text-cefide-muted">
-          {data.length} alumno{data.length !== 1 ? 's' : ''} activo{data.length !== 1 ? 's' : ''}
+          {total} alumno{total !== 1 ? 's' : ''} activo{total !== 1 ? 's' : ''}
         </p>
-      )}
+        {totalPages > 1 && (
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+              Anterior
+            </Button>
+            <span className="flex items-center px-3 text-sm text-cefide-muted">
+              {page} / {totalPages}
+            </span>
+            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+              Siguiente
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

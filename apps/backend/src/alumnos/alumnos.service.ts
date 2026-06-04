@@ -136,6 +136,17 @@ export class AlumnosService {
     await this.findOne(id);
     return this.prisma.alumno.update({
       where: { id },
+      data: { clasesTotal },
+      include: {
+        profesor: { select: { id: true, nombre: true, apellido: true } },
+      },
+    });
+  }
+
+  async renovarClases(id: string, clasesTotal: number) {
+    await this.findOne(id);
+    return this.prisma.alumno.update({
+      where: { id },
       data: { clasesTotal, clasesUsadas: 0 },
       include: {
         profesor: { select: { id: true, nombre: true, apellido: true } },
@@ -145,15 +156,37 @@ export class AlumnosService {
 
   async registrarPago(id: string, pagado: boolean) {
     await this.findOne(id);
-    return this.prisma.alumno.update({
-      where: { id },
-      data: {
-        pagado,
-        fechaPago: pagado ? new Date() : null,
-      },
-      include: {
-        profesor: { select: { id: true, nombre: true, apellido: true } },
-      },
+
+    return this.prisma.$transaction(async (tx) => {
+      const alumno = await tx.alumno.update({
+        where: { id },
+        data: {
+          pagado,
+          fechaPago: pagado ? new Date() : null,
+        },
+        include: {
+          profesor: { select: { id: true, nombre: true, apellido: true } },
+        },
+      });
+
+      // Registrar en historial de pagos
+      await tx.pago.create({
+        data: {
+          alumnoId: id,
+          tipo: pagado ? 'PAGO' : 'ANULACION',
+        },
+      });
+
+      return alumno;
+    });
+  }
+
+  async historialPagos(alumnoId: string) {
+    await this.findOne(alumnoId);
+    return this.prisma.pago.findMany({
+      where: { alumnoId },
+      orderBy: { fecha: 'desc' },
+      take: 50,
     });
   }
 
