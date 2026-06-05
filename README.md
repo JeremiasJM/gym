@@ -45,20 +45,25 @@ pnpm install
 cp apps/backend/.env.example apps/backend/.env
 # Editar .env con valores reales (ver seccion Variables de Entorno)
 
-# 3. Levantar con Docker
-docker-compose up -d
+# 3. Levantar con Docker (el override agrega postgres y puertos locales)
+docker compose up -d
+# Las migraciones corren automaticamente al iniciar el backend
 
-# 4. Correr migraciones Prisma
+# 4. Seed inicial (admin + datos de prueba)
 cd apps/backend
-npx prisma migrate deploy
+npx ts-node prisma/seed.ts
 
-# 5. Seed inicial (admin + datos de prueba)
-npx prisma db seed
-
-# 6. (Opcional) Importar datos del sistema viejo VERSION8
+# 5. (Opcional) Importar datos del sistema viejo VERSION8
 npx ts-node prisma/migracion/parse-version8.ts <ruta-a-CLI.ASC>
 npx ts-node prisma/migracion/migrate.ts
 ```
+
+### Arquitectura Docker
+
+El proyecto usa dos archivos de compose segun la guia Fullmindtech:
+
+- **`docker-compose.yml`** — Solo el backend con Traefik labels. Sin DB, sin ports. Para Dokploy.
+- **`docker-compose.override.yml`** — Agrega PostgreSQL local, expone puertos, monta volumenes. Solo para dev local. No va al repo.
 
 ### Desarrollo sin Docker
 
@@ -303,21 +308,48 @@ npx ts-node prisma/migracion/migrate.ts
 
 ---
 
-## Deploy a Produccion
+## Deploy a Produccion (Dokploy)
 
-### Checklist
+### Arquitectura de deploy
 
-- [ ] Generar `JWT_SECRET` seguro: `openssl rand -hex 64`
-- [ ] Configurar `CORS_ORIGIN` con dominio real
-- [ ] Cambiar password de PostgreSQL en docker-compose
-- [ ] Configurar dominio en Cloudflare
-- [ ] Deploy con Dokploy
-- [ ] Correr `npx prisma migrate deploy` en servidor
-- [ ] Correr seed en servidor
-- [ ] Importar datos VERSION8 si no se hizo
-- [ ] Configurar servicio COM en PCs del gym (molinetes)
-- [ ] Cambiar passwords de admin y profesor
-- [ ] NO exponer Prisma Studio en produccion
+Segun guia Fullmindtech:
+- **Backend** → Dokploy (docker-compose.yml con Traefik)
+- **Frontend** → Cloudflare Pages (build estatico de Vite)
+- **PostgreSQL** → Servicio separado en Dokploy (no en el compose)
+- **Molinete driver** → Proceso local en PC del gym (no en la nube)
+
+### Variables a configurar en Dokploy UI
+
+| Variable | Valor produccion |
+|----------|-----------------|
+| `DATABASE_URL` | URL del PostgreSQL de Dokploy |
+| `JWT_SECRET` | Generar con `openssl rand -hex 64` |
+| `JWT_EXPIRES_IN` | `7d` |
+| `PORT` | `3000` |
+| `NODE_ENV` | `production` |
+| `CORS_ORIGIN` | `https://cefide.fullmindtech.com` |
+| `API_DOMAIN` | `api-cefide.fullmindtech.com` |
+| `COM_SERVICE_URL_1` | IP local de la PC del gym |
+| `COM_SERVICE_URL_2` | IP local de la PC del gym |
+| `COM_PULSE_MS` | `500` |
+| `DEFAULT_CLASES_GRACIA` | `2` |
+| `DEFAULT_DIA_VENCIMIENTO` | `5` |
+
+### Checklist pre-deploy
+
+- [ ] Build Docker funciona: `docker compose build backend`
+- [ ] Migraciones corren automaticamente (en el `command` del compose)
+- [ ] `JWT_SECRET` generado seguro
+- [ ] `CORS_ORIGIN` con dominio real del frontend
+- [ ] PostgreSQL creado como servicio separado en Dokploy
+- [ ] `DATABASE_URL` apuntando al servicio de Dokploy
+- [ ] Dominio configurado en Cloudflare
+- [ ] Frontend deployado en Cloudflare Pages
+- [ ] Seed ejecutado en servidor
+- [ ] Datos VERSION8 importados
+- [ ] Passwords de admin y profesor cambiados
+- [ ] Servicio COM configurado en PCs del gym
+- [ ] Prisma Studio NO expuesto
 
 ### Hardware molinete
 

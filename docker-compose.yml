@@ -1,50 +1,37 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: cefide-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: cefide
-      POSTGRES_PASSWORD: cefide_dev
-      POSTGRES_DB: cefide
-    ports:
-      - '5432:5432'
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
+  # ── Backend API ─────────────────────────────────
   backend:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
     container_name: cefide-backend
     restart: unless-stopped
-    depends_on:
-      - postgres
-    env_file:
-      - .env
     environment:
-      DATABASE_URL: postgresql://cefide:cefide_dev@postgres:5432/cefide
-    ports:
-      - '3000:3000'
-    volumes:
-      - ./apps/backend/src:/app/apps/backend/src
-      - ./apps/backend/prisma:/app/apps/backend/prisma
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      PORT: ${PORT}
+      NODE_ENV: ${NODE_ENV}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      COM_SERVICE_URL_1: ${COM_SERVICE_URL_1}
+      COM_SERVICE_URL_2: ${COM_SERVICE_URL_2}
+      COM_PULSE_MS: ${COM_PULSE_MS}
+      DEFAULT_CLASES_GRACIA: ${DEFAULT_CLASES_GRACIA}
+      DEFAULT_DIA_VENCIMIENTO: ${DEFAULT_DIA_VENCIMIENTO}
+    # Migraciones corren antes del start (requisito Fullmindtech)
+    command: sh -c "npx prisma migrate deploy && node dist/main"
+    networks:
+      - dokploy-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
+      - "traefik.http.routers.cefide-api.rule=Host(`${API_DOMAIN}`)"
+      - "traefik.http.routers.cefide-api.entrypoints=websecure"
+      - "traefik.http.routers.cefide-api.tls=true"
+      - "traefik.http.routers.cefide-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.cefide-api.service=cefide-api"
+      - "traefik.http.services.cefide-api.loadbalancer.server.port=3000"
 
-  frontend:
-    build:
-      context: .
-      dockerfile: apps/frontend/Dockerfile
-    container_name: cefide-frontend
-    restart: unless-stopped
-    depends_on:
-      - backend
-    environment:
-      API_TARGET: http://backend:3000
-    ports:
-      - '5173:5173'
-    volumes:
-      - ./apps/frontend/src:/app/apps/frontend/src
-      - ./apps/frontend/index.html:/app/apps/frontend/index.html
-
-volumes:
-  pgdata:
+networks:
+  dokploy-network:
+    external: true

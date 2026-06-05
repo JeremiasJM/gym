@@ -30,6 +30,7 @@ apps/backend/prisma/migracion/data/profesores.csv
 
 # Docker
 pgdata/
+docker-compose.override.yml
 
 # Logs
 *.log
