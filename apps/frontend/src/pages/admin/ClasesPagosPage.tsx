@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, DollarSign, BookOpen, Check, X, RefreshCw } from 'lucide-react';
+import { Search, DollarSign, Check, X, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

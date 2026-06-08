@@ -1,4 +1,6 @@
-const API_BASE = '/api';
+import { config } from '@/config/env';
+
+const API_BASE = config.apiBase;
 
 interface ApiOptions extends RequestInit {
   token?: string;

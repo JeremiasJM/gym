@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import { useApiGet } from '@/hooks/use-api';
 import { useAuthStore } from '@/stores/auth.store';
+import { config } from '@/config/env';
 import type { Profesor } from '@/types';
 
 interface ReporteAlumno {
@@ -48,7 +49,7 @@ export function ReportePage() {
     const csvParams = new URLSearchParams();
     if (filterProfesor !== 'all') csvParams.set('profesorId', filterProfesor);
 
-    const url = `/api/reportes/actividad/csv?${csvParams.toString()}`;
+    const url = `${config.apiBase}/reportes/actividad/csv?${csvParams.toString()}`;
     fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
     })
