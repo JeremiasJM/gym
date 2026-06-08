@@ -27,12 +27,19 @@ export class AdminSeedService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
-    const email = this.config.get<string>('ADMIN_EMAIL');
-    const password = this.config.get<string>('ADMIN_PASSWORD');
+    const email = (
+      this.config.get<string>('ADMIN_EMAIL') ?? process.env.ADMIN_EMAIL ?? ''
+    ).trim();
+    const password = (
+      this.config.get<string>('ADMIN_PASSWORD') ??
+      process.env.ADMIN_PASSWORD ??
+      ''
+    ).trim();
 
     if (!email || !password) {
       this.logger.warn(
-        'ADMIN_EMAIL/ADMIN_PASSWORD no definidos — se omite la creacion del admin.',
+        `ADMIN_EMAIL/ADMIN_PASSWORD no definidos — se omite la creacion del admin. ` +
+          `(email=${email ? 'set' : 'vacio'}, password=${password ? 'set' : 'vacio'})`,
       );
       return;
     }
