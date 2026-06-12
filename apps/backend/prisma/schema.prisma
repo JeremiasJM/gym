@@ -7,79 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Alumno {
-  id            String    @id @default(cuid())
-  dni           String    @unique
-  nombre        String
-  apellido      String
-  activo        Boolean   @default(true)
-  profesorId    String?
-  profesor      Profesor? @relation(fields: [profesorId], references: [id])
-  clasesTotal   Int       @default(0)
-  clasesUsadas  Int       @default(0)
-  pagado        Boolean   @default(false)
-  fechaPago     DateTime?
-  ingresos      Ingreso[]
-  pagos         Pago[]
-  creadoEn      DateTime  @default(now())
-  actualizadoEn DateTime  @updatedAt
-
-  @@index([profesorId])
-  @@index([dni])
-}
-
-model Profesor {
-  id       String   @id @default(cuid())
-  dni      String   @unique
-  nombre   String
-  apellido String
-  usuario  Usuario?
-  alumnos  Alumno[]
-}
-
-model Usuario {
-  id         String   @id @default(cuid())
-  email      String   @unique
-  password   String
-  rol        Rol      @default(PROFESOR)
-  profesorId String?  @unique
-  profesor   Profesor? @relation(fields: [profesorId], references: [id])
-  creadoEn   DateTime @default(now())
-}
-
-model Ingreso {
-  id        String        @id @default(cuid())
-  alumnoId  String
-  alumno    Alumno        @relation(fields: [alumnoId], references: [id])
-  fechaHora DateTime      @default(now())
-  estado    EstadoIngreso
-  molinete  Int           @default(1)
-
-  @@index([alumnoId])
-  @@index([fechaHora])
-}
-
-model Pago {
-  id        String   @id @default(cuid())
-  alumnoId  String
-  alumno    Alumno   @relation(fields: [alumnoId], references: [id])
-  tipo      TipoPago
-  fecha     DateTime @default(now())
-  nota      String?
-
-  @@index([alumnoId])
-  @@index([fecha])
+enum Frecuencia {
+  UNA_VEZ
+  DOS_VECES
+  TRES_VECES
+  LIBRE
 }
 
 enum TipoPago {
   PAGO
   ANULACION
-}
-
-model ConfigSistema {
-  id             String @id @default("global")
-  clasesGracia   Int    @default(2)
-  diaVencimiento Int    @default(5)
 }
 
 enum Rol {
@@ -91,4 +28,105 @@ enum EstadoIngreso {
   VERDE
   AMARILLO
   ROJO
+}
+
+model Actividad {
+  id            String                 @id @default(cuid())
+  nombre        String                 @unique
+  activo        Boolean                @default(true)
+  inscripciones InscripcionActividad[]
+  creadoEn      DateTime               @default(now())
+}
+
+model Alumno {
+  id            String                 @id @default(cuid())
+  dni           String                 @unique
+  nombre        String
+  apellido      String
+  activo        Boolean                @default(true)
+  inscripciones InscripcionActividad[]
+  ingresos      Ingreso[]
+  pagos         Pago[]
+  creadoEn      DateTime               @default(now())
+  actualizadoEn DateTime               @updatedAt
+
+  @@index([dni])
+}
+
+model InscripcionActividad {
+  id           String     @id @default(cuid())
+  alumnoId     String
+  alumno       Alumno     @relation(fields: [alumnoId], references: [id])
+  actividadId  String
+  actividad    Actividad  @relation(fields: [actividadId], references: [id])
+  frecuencia   Frecuencia
+  clasesTotal  Int
+  clasesUsadas Int        @default(0)
+  pagado       Boolean    @default(false)
+  fechaPago    DateTime?
+  pagos        Pago[]
+  ingresos     Ingreso[]
+  creadoEn     DateTime   @default(now())
+
+  @@unique([alumnoId, actividadId])
+  @@index([alumnoId])
+  @@index([actividadId])
+}
+
+model Profesor {
+  id       String   @id @default(cuid())
+  dni      String   @unique
+  nombre   String
+  apellido String
+  usuario  Usuario?
+}
+
+model Usuario {
+  id         String    @id @default(cuid())
+  email      String    @unique
+  password   String
+  rol        Rol       @default(PROFESOR)
+  profesorId String?   @unique
+  profesor   Profesor? @relation(fields: [profesorId], references: [id])
+  creadoEn   DateTime  @default(now())
+}
+
+model Ingreso {
+  id            String                @id @default(cuid())
+  alumnoId      String
+  alumno        Alumno                @relation(fields: [alumnoId], references: [id])
+  inscripcionId String?
+  inscripcion   InscripcionActividad? @relation(fields: [inscripcionId], references: [id])
+  fechaHora     DateTime              @default(now())
+  estado        EstadoIngreso
+  molinete      Int                   @default(1)
+
+  @@index([alumnoId])
+  @@index([inscripcionId])
+  @@index([fechaHora])
+}
+
+model Pago {
+  id            String                @id @default(cuid())
+  alumnoId      String
+  alumno        Alumno                @relation(fields: [alumnoId], references: [id])
+  inscripcionId String?
+  inscripcion   InscripcionActividad? @relation(fields: [inscripcionId], references: [id])
+  tipo          TipoPago
+  fecha         DateTime              @default(now())
+  nota          String?
+
+  @@index([alumnoId])
+  @@index([inscripcionId])
+  @@index([fecha])
+}
+
+model ConfigSistema {
+  id              String @id @default("global")
+  clasesGracia    Int    @default(2)
+  diaVencimiento  Int    @default(5)
+  clasesUnaVez    Int    @default(5)
+  clasesDosVeces  Int    @default(9)
+  clasesTresVeces Int    @default(13)
+  clasesLibre     Int    @default(30)
 }

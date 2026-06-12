@@ -16,7 +16,17 @@ export class ConfigSistemaController {
   }
 
   @Patch()
-  update(@Body() data: { clasesGracia?: number; diaVencimiento?: number }) {
+  update(
+    @Body()
+    data: {
+      clasesGracia?: number;
+      diaVencimiento?: number;
+      clasesUnaVez?: number;
+      clasesDosVeces?: number;
+      clasesTresVeces?: number;
+      clasesLibre?: number;
+    },
+  ) {
     return this.configService.update(data);
   }
 }

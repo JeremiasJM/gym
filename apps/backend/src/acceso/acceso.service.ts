@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { EstadoIngreso } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
-// DNIs comodín: siempre pasan en VERDE (dueño, profesores)
 const DNIS_COMODIN = ['00000000', '99999999'];
 
 export interface ResultadoAcceso {
@@ -15,21 +14,70 @@ export interface ResultadoAcceso {
   clasesRestantes: number;
   clasesGraciaRestantes: number;
   mensaje: string;
+  actividad?: string;
+}
+
+export interface ConsultaAcceso {
+  alumno: {
+    id: string;
+    nombre: string;
+    apellido: string;
+    dni: string;
+  };
+  activo: boolean;
+  esComodin: boolean;
+  inscripciones: {
+    id: string;
+    actividadId: string;
+    actividad: string;
+    frecuencia: string;
+    clasesRestantes: number;
+    pagado: boolean;
+  }[];
 }
 
 @Injectable()
 export class AccesoService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Lógica central de acceso — determina estado VERDE/AMARILLO/ROJO
-   *
-   * VERDE:    pagado Y tiene clases disponibles
-   * AMARILLO: no pagó PERO tiene clases de gracia disponibles
-   * ROJO:     sin clases de gracia O sin pago después del vencimiento
-   */
-  async validarAcceso(dni: string): Promise<ResultadoAcceso> {
-    // DNI comodín: siempre VERDE
+  async consultarAcceso(dni: string): Promise<ConsultaAcceso> {
+    if (DNIS_COMODIN.includes(dni)) {
+      return {
+        alumno: { id: 'comodin', nombre: 'ACCESO', apellido: 'AUTORIZADO', dni },
+        activo: true,
+        esComodin: true,
+        inscripciones: [],
+      };
+    }
+
+    const alumno = await this.prisma.alumno.findUnique({
+      where: { dni },
+      include: {
+        inscripciones: {
+          include: { actividad: { select: { nombre: true } } },
+          orderBy: { actividad: { nombre: 'asc' } },
+        },
+      },
+    });
+
+    if (!alumno) throw new NotFoundException('DNI no registrado');
+
+    return {
+      alumno: { id: alumno.id, nombre: alumno.nombre, apellido: alumno.apellido, dni },
+      activo: alumno.activo,
+      esComodin: false,
+      inscripciones: alumno.inscripciones.map((i) => ({
+        id: i.id,
+        actividadId: i.actividadId,
+        actividad: i.actividad.nombre,
+        frecuencia: i.frecuencia,
+        clasesRestantes: i.clasesTotal - i.clasesUsadas,
+        pagado: i.pagado,
+      })),
+    };
+  }
+
+  async validarAcceso(dni: string, inscripcionId: string | null): Promise<ResultadoAcceso> {
     if (DNIS_COMODIN.includes(dni)) {
       return {
         estado: EstadoIngreso.VERDE,
@@ -40,13 +88,9 @@ export class AccesoService {
       };
     }
 
-    const alumno = await this.prisma.alumno.findUnique({
-      where: { dni },
-    });
+    const alumno = await this.prisma.alumno.findUnique({ where: { dni } });
 
-    if (!alumno) {
-      throw new NotFoundException('DNI no registrado');
-    }
+    if (!alumno) throw new NotFoundException('DNI no registrado');
 
     if (!alumno.activo) {
       return {
@@ -58,44 +102,65 @@ export class AccesoService {
       };
     }
 
-    const config = await this.prisma.configSistema.findUnique({
-      where: { id: 'global' },
+    if (!inscripcionId) {
+      return {
+        estado: EstadoIngreso.ROJO,
+        alumno: { nombre: alumno.nombre, apellido: alumno.apellido, dni },
+        clasesRestantes: 0,
+        clasesGraciaRestantes: 0,
+        mensaje: 'Seleccionar actividad',
+      };
+    }
+
+    const inscripcion = await this.prisma.inscripcionActividad.findFirst({
+      where: { id: inscripcionId, alumnoId: alumno.id },
+      include: { actividad: { select: { nombre: true } } },
     });
+
+    if (!inscripcion) {
+      return {
+        estado: EstadoIngreso.ROJO,
+        alumno: { nombre: alumno.nombre, apellido: alumno.apellido, dni },
+        clasesRestantes: 0,
+        clasesGraciaRestantes: 0,
+        mensaje: 'Inscripción no válida',
+      };
+    }
+
+    const config = await this.prisma.configSistema.findUnique({ where: { id: 'global' } });
     const clasesGraciaMax = config?.clasesGracia ?? 2;
+    const clasesRestantes = inscripcion.clasesTotal - inscripcion.clasesUsadas;
+    const actividad = inscripcion.actividad.nombre;
 
-    const clasesRestantes = alumno.clasesTotal - alumno.clasesUsadas;
-
-    // Sin clases restantes → ROJO directo
     if (clasesRestantes <= 0) {
       return {
         estado: EstadoIngreso.ROJO,
         alumno: { nombre: alumno.nombre, apellido: alumno.apellido, dni },
         clasesRestantes: 0,
         clasesGraciaRestantes: 0,
-        mensaje: 'Sin clases disponibles — acceso bloqueado',
+        mensaje: `Sin clases disponibles en ${actividad}`,
+        actividad,
       };
     }
 
-    // Pagado y tiene clases → VERDE
-    if (alumno.pagado) {
+    if (inscripcion.pagado) {
       return {
         estado: EstadoIngreso.VERDE,
         alumno: { nombre: alumno.nombre, apellido: alumno.apellido, dni },
         clasesRestantes,
         clasesGraciaRestantes: 0,
-        mensaje: `Acceso permitido — ${clasesRestantes} clase(s) restante(s)`,
+        mensaje: `Acceso permitido — ${clasesRestantes} clase(s) restante(s) en ${actividad}`,
+        actividad,
       };
     }
 
-    // No pagó: calcular clases de gracia usadas este período
-    // Clases de gracia = ingresos AMARILLO desde último pago o inicio de mes
     const inicioMes = new Date();
     inicioMes.setDate(1);
     inicioMes.setHours(0, 0, 0, 0);
 
     const ingresosGracia = await this.prisma.ingreso.count({
       where: {
-        alumnoId: alumno.id,
+        inscripcionId,
         estado: EstadoIngreso.AMARILLO,
         fechaHora: { gte: inicioMes },
       },
@@ -103,55 +168,50 @@ export class AccesoService {
 
     const clasesGraciaRestantes = clasesGraciaMax - ingresosGracia;
 
-    // Tiene clases de gracia disponibles → AMARILLO
     if (clasesGraciaRestantes > 0) {
       return {
         estado: EstadoIngreso.AMARILLO,
         alumno: { nombre: alumno.nombre, apellido: alumno.apellido, dni },
         clasesRestantes,
         clasesGraciaRestantes,
-        mensaje: `Acceso con gracia — ${clasesGraciaRestantes} clase(s) de gracia restante(s). Regularizar pago.`,
+        mensaje: `${clasesGraciaRestantes} clase(s) de gracia en ${actividad}. Regularizar pago.`,
+        actividad,
       };
     }
 
-    // Sin clases de gracia → ROJO
     return {
       estado: EstadoIngreso.ROJO,
       alumno: { nombre: alumno.nombre, apellido: alumno.apellido, dni },
       clasesRestantes,
       clasesGraciaRestantes: 0,
-      mensaje: 'Sin clases de gracia — regularizar pago para acceder',
+      mensaje: `Sin clases de gracia — regularizar pago para ${actividad}`,
+      actividad,
     };
   }
 
-  /**
-   * Registrar ingreso en DB y descontar clase si corresponde
-   */
   async registrarIngreso(
     dni: string,
+    inscripcionId: string | null,
     estado: EstadoIngreso,
     molinete: number = 1,
   ) {
     const alumno = await this.prisma.alumno.findUnique({ where: { dni } });
-
     if (!alumno) return;
+
     if (DNIS_COMODIN.includes(dni)) {
-      // Registrar ingreso comodín sin descontar clases
       return this.prisma.ingreso.create({
         data: { alumnoId: alumno.id, estado, molinete },
       });
     }
 
-    // Registrar ingreso y descontar clase en transacción
     return this.prisma.$transaction(async (tx) => {
       const ingreso = await tx.ingreso.create({
-        data: { alumnoId: alumno.id, estado, molinete },
+        data: { alumnoId: alumno.id, inscripcionId, estado, molinete },
       });
 
-      // Solo descontar si acceso fue concedido (VERDE o AMARILLO)
-      if (estado !== EstadoIngreso.ROJO) {
-        await tx.alumno.update({
-          where: { id: alumno.id },
+      if (estado !== EstadoIngreso.ROJO && inscripcionId) {
+        await tx.inscripcionActividad.update({
+          where: { id: inscripcionId },
           data: { clasesUsadas: { increment: 1 } },
         });
       }

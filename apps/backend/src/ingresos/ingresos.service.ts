@@ -6,7 +6,6 @@ interface FindAllParams {
   desde?: string;
   hasta?: string;
   alumnoId?: string;
-  profesorId?: string;
   estado?: EstadoIngreso;
   search?: string;
   page?: number;
@@ -18,7 +17,7 @@ export class IngresosService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(params: FindAllParams) {
-    const { desde, hasta, alumnoId, profesorId, estado, search, page = 1, limit = 30 } = params;
+    const { desde, hasta, alumnoId, estado, search, page = 1, limit = 30 } = params;
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
@@ -36,13 +35,8 @@ export class IngresosService {
     if (alumnoId) where.alumnoId = alumnoId;
     if (estado) where.estado = estado;
 
-    if (profesorId) {
-      where.alumno = { profesorId };
-    }
-
     if (search) {
       where.alumno = {
-        ...((where.alumno as Record<string, unknown>) || {}),
         OR: [
           { dni: { contains: search } },
           { nombre: { contains: search, mode: 'insensitive' } },
@@ -56,12 +50,10 @@ export class IngresosService {
         where,
         include: {
           alumno: {
-            select: {
-              dni: true,
-              nombre: true,
-              apellido: true,
-              profesor: { select: { nombre: true, apellido: true } },
-            },
+            select: { dni: true, nombre: true, apellido: true },
+          },
+          inscripcion: {
+            include: { actividad: { select: { nombre: true } } },
           },
         },
         orderBy: { fechaHora: 'desc' },

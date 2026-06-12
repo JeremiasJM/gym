@@ -12,13 +12,15 @@ import {
 import { useApiGet } from '@/hooks/use-api';
 import { useAuthStore } from '@/stores/auth.store';
 import { config } from '@/config/env';
-import type { Profesor } from '@/types';
+import { FRECUENCIA_LABEL } from '@/types';
+import type { Actividad } from '@/types';
 
-interface ReporteAlumno {
+interface ReporteInscripcion {
   dni: string;
   nombre: string;
   apellido: string;
-  profesor: string;
+  actividad: string;
+  frecuencia: string;
   clasesTotal: number;
   clasesUsadas: number;
   clasesRestantes: number;
@@ -30,16 +32,17 @@ const PAGE_SIZE = 20;
 
 export function ReportePage() {
   const token = useAuthStore((s) => s.token);
-  const [filterProfesor, setFilterProfesor] = useState('all');
+  const [filterActividad, setFilterActividad] = useState('all');
   const [page, setPage] = useState(1);
 
-  const params = new URLSearchParams();
-  if (filterProfesor !== 'all') params.set('profesorId', filterProfesor);
+  const { data: actividades } = useApiGet<Actividad[]>('/actividades');
 
-  const { data } = useApiGet<ReporteAlumno[]>(
+  const params = new URLSearchParams();
+  if (filterActividad !== 'all') params.set('actividadId', filterActividad);
+
+  const { data } = useApiGet<ReporteInscripcion[]>(
     `/reportes/actividad?${params.toString()}`,
   );
-  const { data: profesores } = useApiGet<Profesor[]>('/profesores');
 
   const total = data?.length ?? 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -47,7 +50,7 @@ export function ReportePage() {
 
   function handleExportCsv() {
     const csvParams = new URLSearchParams();
-    if (filterProfesor !== 'all') csvParams.set('profesorId', filterProfesor);
+    if (filterActividad !== 'all') csvParams.set('actividadId', filterActividad);
 
     const url = `${config.apiBase}/reportes/actividad/csv?${csvParams.toString()}`;
     fetch(url, {
@@ -63,11 +66,9 @@ export function ReportePage() {
       });
   }
 
-  function getEstadoBadge(item: ReporteAlumno) {
-    if (item.pagado && item.clasesRestantes > 0)
-      return <Badge variant="success">VERDE</Badge>;
-    if (!item.pagado && item.clasesRestantes > 0)
-      return <Badge variant="warning">AMARILLO</Badge>;
+  function getEstadoBadge(item: ReporteInscripcion) {
+    if (item.pagado && item.clasesRestantes > 0) return <Badge variant="success">VERDE</Badge>;
+    if (!item.pagado && item.clasesRestantes > 0) return <Badge variant="warning">AMARILLO</Badge>;
     return <Badge variant="destructive">ROJO</Badge>;
   }
 
@@ -81,22 +82,14 @@ export function ReportePage() {
         </Button>
       </div>
 
-      <Select
-        value={filterProfesor}
-        onValueChange={(v) => {
-          setFilterProfesor(v);
-          setPage(1);
-        }}
-      >
+      <Select value={filterActividad} onValueChange={(v) => { setFilterActividad(v); setPage(1); }}>
         <SelectTrigger className="w-[250px]">
-          <SelectValue placeholder="Todos los profesores" />
+          <SelectValue placeholder="Todas las actividades" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Todos los profesores</SelectItem>
-          {profesores?.map((p) => (
-            <SelectItem key={p.id} value={p.id}>
-              {p.apellido}, {p.nombre}
-            </SelectItem>
+          <SelectItem value="all">Todas las actividades</SelectItem>
+          {actividades?.map((a) => (
+            <SelectItem key={a.id} value={a.id}>{a.nombre}</SelectItem>
           ))}
         </SelectContent>
       </Select>
@@ -107,7 +100,8 @@ export function ReportePage() {
             <tr className="border-b border-cefide-border">
               <th className="px-4 py-3 text-left font-medium text-cefide-muted">DNI</th>
               <th className="px-4 py-3 text-left font-medium text-cefide-muted">Nombre</th>
-              <th className="px-4 py-3 text-left font-medium text-cefide-muted">Profesor</th>
+              <th className="px-4 py-3 text-left font-medium text-cefide-muted">Actividad</th>
+              <th className="px-4 py-3 text-center font-medium text-cefide-muted">Frecuencia</th>
               <th className="px-4 py-3 text-center font-medium text-cefide-muted">Realizadas</th>
               <th className="px-4 py-3 text-center font-medium text-cefide-muted">Restantes</th>
               <th className="px-4 py-3 text-center font-medium text-cefide-muted">Pago</th>
@@ -115,11 +109,14 @@ export function ReportePage() {
             </tr>
           </thead>
           <tbody>
-            {paginated.map((item) => (
-              <tr key={item.dni} className="border-b border-cefide-border hover:bg-cefide-surface/50">
+            {paginated.map((item, i) => (
+              <tr key={`${item.dni}-${item.actividad}-${i}`} className="border-b border-cefide-border hover:bg-cefide-surface/50">
                 <td className="px-4 py-3 font-mono">{item.dni}</td>
                 <td className="px-4 py-3">{item.apellido}, {item.nombre}</td>
-                <td className="px-4 py-3 text-cefide-muted">{item.profesor}</td>
+                <td className="px-4 py-3">{item.actividad}</td>
+                <td className="px-4 py-3 text-center text-cefide-muted">
+                  {FRECUENCIA_LABEL[item.frecuencia as keyof typeof FRECUENCIA_LABEL] ?? item.frecuencia}
+                </td>
                 <td className="px-4 py-3 text-center font-mono">{item.clasesUsadas}</td>
                 <td className="px-4 py-3 text-center font-mono">{item.clasesRestantes}</td>
                 <td className="px-4 py-3 text-center">
@@ -132,9 +129,7 @@ export function ReportePage() {
             ))}
             {total === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-cefide-muted">
-                  Sin datos
-                </td>
+                <td colSpan={8} className="px-4 py-8 text-center text-cefide-muted">Sin datos</td>
               </tr>
             )}
           </tbody>
@@ -143,19 +138,13 @@ export function ReportePage() {
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-cefide-muted">
-          {total} alumno{total !== 1 ? 's' : ''} activo{total !== 1 ? 's' : ''}
+          {total} inscripcion{total !== 1 ? 'es' : ''}
         </p>
         {totalPages > 1 && (
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-              Anterior
-            </Button>
-            <span className="flex items-center px-3 text-sm text-cefide-muted">
-              {page} / {totalPages}
-            </span>
-            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
-              Siguiente
-            </Button>
+            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Anterior</Button>
+            <span className="flex items-center px-3 text-sm text-cefide-muted">{page} / {totalPages}</span>
+            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Siguiente</Button>
           </div>
         )}
       </div>

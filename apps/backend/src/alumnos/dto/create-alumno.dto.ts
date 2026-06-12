@@ -15,10 +15,6 @@ export class CreateAlumnoDto {
   apellido: string;
 
   @IsOptional()
-  @IsString()
-  profesorId?: string;
-
-  @IsOptional()
   @IsBoolean()
   activo?: boolean;
 }

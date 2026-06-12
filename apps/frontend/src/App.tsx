@@ -5,6 +5,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { AdminLayout } from '@/components/AdminLayout';
 import { LoginPage } from '@/pages/LoginPage';
 import { AlumnosPage } from '@/pages/admin/AlumnosPage';
+import { ActividadesPage } from '@/pages/admin/ActividadesPage';
 import { ClasesPagosPage } from '@/pages/admin/ClasesPagosPage';
 import { ConfigPage } from '@/pages/admin/ConfigPage';
 import { MolinetesPage } from '@/pages/admin/MolinetesPage';
@@ -28,7 +29,6 @@ export function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/kiosco" element={<KioscoPage />} />
 
-        {/* Admin routes with sidebar layout */}
         <Route
           path="/admin"
           element={
@@ -39,12 +39,13 @@ export function App() {
         >
           <Route index element={<Navigate to="alumnos" replace />} />
           <Route path="alumnos" element={<AlumnosPage />} />
-          <Route path="profesores" element={<ProfesoresPage />} />
+          <Route path="actividades" element={<ActividadesPage />} />
           <Route path="clases-pagos" element={<ClasesPagosPage />} />
           <Route path="pagos" element={<PagosLogPage />} />
           <Route path="molinetes" element={<MolinetesPage />} />
           <Route path="ingresos" element={<IngresosLogPage />} />
           <Route path="reportes" element={<ReportePage />} />
+          <Route path="profesores" element={<ProfesoresPage />} />
           <Route path="config" element={<ConfigPage />} />
         </Route>
 
@@ -57,7 +58,6 @@ export function App() {
           }
         />
 
-        {/* Root redirect */}
         <Route
           path="/"
           element={

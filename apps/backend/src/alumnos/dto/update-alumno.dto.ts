@@ -18,10 +18,6 @@ export class UpdateAlumnoDto {
   apellido?: string;
 
   @IsOptional()
-  @IsString()
-  profesorId?: string | null;
-
-  @IsOptional()
   @IsBoolean()
   activo?: boolean;
 }

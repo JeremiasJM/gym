@@ -9,7 +9,6 @@ import { UpdateAlumnoDto } from './dto/update-alumno.dto';
 
 interface FindAllParams {
   search?: string;
-  profesorId?: string;
   activo?: boolean;
   page?: number;
   limit?: number;
@@ -20,7 +19,7 @@ export class AlumnosService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(params: FindAllParams) {
-    const { search, profesorId, activo, page = 1, limit = 20 } = params;
+    const { search, activo, page = 1, limit = 20 } = params;
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
@@ -33,10 +32,6 @@ export class AlumnosService {
       ];
     }
 
-    if (profesorId) {
-      where.profesorId = profesorId;
-    }
-
     if (activo !== undefined) {
       where.activo = activo;
     }
@@ -44,9 +39,6 @@ export class AlumnosService {
     const [data, total] = await Promise.all([
       this.prisma.alumno.findMany({
         where,
-        include: {
-          profesor: { select: { id: true, nombre: true, apellido: true } },
-        },
         orderBy: { apellido: 'asc' },
         skip,
         take: limit,
@@ -66,7 +58,10 @@ export class AlumnosService {
     const alumno = await this.prisma.alumno.findUnique({
       where: { id },
       include: {
-        profesor: { select: { id: true, nombre: true, apellido: true } },
+        inscripciones: {
+          include: { actividad: true },
+          orderBy: { actividad: { nombre: 'asc' } },
+        },
       },
     });
 
@@ -86,18 +81,12 @@ export class AlumnosService {
       throw new ConflictException('Ya existe un alumno con ese DNI');
     }
 
-    return this.prisma.alumno.create({
-      data: dto,
-      include: {
-        profesor: { select: { id: true, nombre: true, apellido: true } },
-      },
-    });
+    return this.prisma.alumno.create({ data: dto });
   }
 
   async update(id: string, dto: UpdateAlumnoDto) {
     await this.findOne(id);
 
-    // Si cambia DNI, verificar unicidad
     if (dto.dni) {
       const exists = await this.prisma.alumno.findFirst({
         where: { dni: dto.dni, NOT: { id } },
@@ -107,13 +96,7 @@ export class AlumnosService {
       }
     }
 
-    return this.prisma.alumno.update({
-      where: { id },
-      data: dto,
-      include: {
-        profesor: { select: { id: true, nombre: true, apellido: true } },
-      },
-    });
+    return this.prisma.alumno.update({ where: { id }, data: dto });
   }
 
   async deactivate(id: string) {
@@ -132,78 +115,33 @@ export class AlumnosService {
     });
   }
 
-  async asignarClases(id: string, clasesTotal: number) {
-    await this.findOne(id);
-    return this.prisma.alumno.update({
-      where: { id },
-      data: { clasesTotal },
-      include: {
-        profesor: { select: { id: true, nombre: true, apellido: true } },
-      },
-    });
-  }
+  async renovacionMensual(): Promise<{ renovados: number }> {
+    const config = await this.prisma.configSistema.findUnique({ where: { id: 'global' } });
+    const clasesPorFrecuencia: Record<string, number> = {
+      UNA_VEZ:    config?.clasesUnaVez    ?? 5,
+      DOS_VECES:  config?.clasesDosVeces  ?? 9,
+      TRES_VECES: config?.clasesTresVeces ?? 13,
+      LIBRE:      config?.clasesLibre     ?? 30,
+    };
 
-  async renovarClases(id: string, clasesTotal: number) {
-    await this.findOne(id);
-    return this.prisma.alumno.update({
-      where: { id },
-      data: { clasesTotal, clasesUsadas: 0 },
-      include: {
-        profesor: { select: { id: true, nombre: true, apellido: true } },
-      },
-    });
-  }
-
-  async registrarPago(id: string, pagado: boolean) {
-    await this.findOne(id);
-
-    return this.prisma.$transaction(async (tx) => {
-      const alumno = await tx.alumno.update({
-        where: { id },
-        data: {
-          pagado,
-          fechaPago: pagado ? new Date() : null,
-        },
-        include: {
-          profesor: { select: { id: true, nombre: true, apellido: true } },
-        },
-      });
-
-      // Registrar en historial de pagos
-      await tx.pago.create({
-        data: {
-          alumnoId: id,
-          tipo: pagado ? 'PAGO' : 'ANULACION',
-        },
-      });
-
-      return alumno;
-    });
-  }
-
-  async historialPagos(alumnoId: string) {
-    await this.findOne(alumnoId);
-    return this.prisma.pago.findMany({
-      where: { alumnoId },
-      orderBy: { fecha: 'desc' },
-      take: 50,
-    });
-  }
-
-  /**
-   * Renovación mensual: reset clases usadas y estado de pago
-   * Se ejecuta vía cron el lunes siguiente al día 30/31
-   */
-  async renovacionMensual() {
-    const result = await this.prisma.alumno.updateMany({
-      where: { activo: true },
-      data: {
-        clasesUsadas: 0,
-        pagado: false,
-        fechaPago: null,
-      },
+    const inscripciones = await this.prisma.inscripcionActividad.findMany({
+      where: { alumno: { activo: true } },
+      select: { id: true, frecuencia: true },
     });
 
-    return { renovados: result.count };
+    await Promise.all(
+      inscripciones.map((ins) =>
+        this.prisma.inscripcionActividad.update({
+          where: { id: ins.id },
+          data: {
+            clasesUsadas: 0,
+            pagado: false,
+            clasesTotal: clasesPorFrecuencia[ins.frecuencia] ?? 5,
+          },
+        }),
+      ),
+    );
+
+    return { renovados: inscripciones.length };
   }
 }

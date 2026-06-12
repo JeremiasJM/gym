@@ -42,7 +42,17 @@
       "Bash(ls \"C:/Users/Jerem/Desktop/fullmintech/gym/.env\"*)",
       "Bash(docker-compose down *)",
       "Bash(docker info *)",
-      "Bash(break)"
+      "Bash(break)",
+      "Bash(git remote *)",
+      "Bash(git fetch *)",
+      "Bash(git cherry-pick *)",
+      "Bash(git push *)",
+      "Bash(Remove-Item \"C:\\\\Users\\\\Jerem\\\\Desktop\\\\fullmintech\\\\gym\\\\apps\\\\backend\\\\src\\\\alumnos\\\\dto\\\\asignar-clases.dto.ts\" -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item \"C:\\\\Users\\\\Jerem\\\\Desktop\\\\fullmintech\\\\gym\\\\apps\\\\backend\\\\src\\\\alumnos\\\\dto\\\\registrar-pago.dto.ts\" -ErrorAction SilentlyContinue)",
+      "Bash(Write-Output \"DTOs eliminados\")",
+      "Bash(Start-Sleep -Seconds 8)",
+      "Bash(Get-Content \"C:\\\\Users\\\\Jerem\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Jerem-Desktop-fullmintech-gym\\\\11fb564b-db86-4ed6-bc3a-8f622ae002c7\\\\tasks\\\\bmc0ziogs.output\")",
+      "Bash(Select-Object -Last 20)"
     ]
   }
 }

@@ -14,12 +14,11 @@ import { useApiGet } from '@/hooks/use-api';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth.store';
 import { AlumnoFormDialog } from './AlumnoFormDialog';
-import type { Alumno, Profesor, PaginatedResponse } from '@/types';
+import type { Alumno, PaginatedResponse } from '@/types';
 
 export function AlumnosPage() {
   const token = useAuthStore((s) => s.token);
   const [search, setSearch] = useState('');
-  const [filterProfesor, setFilterProfesor] = useState('all');
   const [filterActivo, setFilterActivo] = useState('all');
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -27,7 +26,6 @@ export function AlumnosPage() {
 
   const params = new URLSearchParams();
   if (search) params.set('search', search);
-  if (filterProfesor !== 'all') params.set('profesorId', filterProfesor);
   if (filterActivo !== 'all') params.set('activo', filterActivo);
   params.set('page', String(page));
   params.set('limit', '20');
@@ -35,7 +33,6 @@ export function AlumnosPage() {
   const { data, mutate } = useApiGet<PaginatedResponse<Alumno>>(
     `/alumnos?${params.toString()}`,
   );
-  const { data: profesores } = useApiGet<Profesor[]>('/profesores');
 
   async function toggleActivo(alumno: Alumno) {
     const action = alumno.activo ? 'deactivate' : 'activate';
@@ -66,7 +63,6 @@ export function AlumnosPage() {
         </Button>
       </div>
 
-      {/* Filtros */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cefide-muted" />
@@ -80,25 +76,6 @@ export function AlumnosPage() {
             className="pl-9"
           />
         </div>
-        <Select
-          value={filterProfesor}
-          onValueChange={(v) => {
-            setFilterProfesor(v);
-            setPage(1);
-          }}
-        >
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Todos los profesores" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los profesores</SelectItem>
-            {profesores?.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.apellido}, {p.nombre}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
         <Select
           value={filterActivo}
           onValueChange={(v) => {
@@ -117,15 +94,12 @@ export function AlumnosPage() {
         </Select>
       </div>
 
-      {/* Tabla */}
       <div className="rounded-lg border border-cefide-border overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-cefide-surface">
             <tr className="border-b border-cefide-border">
               <th className="px-4 py-3 text-left font-medium text-cefide-muted">DNI</th>
               <th className="px-4 py-3 text-left font-medium text-cefide-muted">Nombre</th>
-              <th className="px-4 py-3 text-left font-medium text-cefide-muted">Profesor</th>
-              <th className="px-4 py-3 text-left font-medium text-cefide-muted">Clases</th>
               <th className="px-4 py-3 text-left font-medium text-cefide-muted">Estado</th>
               <th className="px-4 py-3 text-right font-medium text-cefide-muted">Acciones</th>
             </tr>
@@ -139,16 +113,6 @@ export function AlumnosPage() {
                 <td className="px-4 py-3 font-mono">{alumno.dni}</td>
                 <td className="px-4 py-3">
                   {alumno.apellido}, {alumno.nombre}
-                </td>
-                <td className="px-4 py-3 text-cefide-muted">
-                  {alumno.profesor
-                    ? `${alumno.profesor.apellido}, ${alumno.profesor.nombre}`
-                    : '—'}
-                </td>
-                <td className="px-4 py-3">
-                  <span className="font-mono">
-                    {alumno.clasesUsadas}/{alumno.clasesTotal}
-                  </span>
                 </td>
                 <td className="px-4 py-3">
                   <Badge variant={alumno.activo ? 'success' : 'muted'}>
@@ -182,7 +146,7 @@ export function AlumnosPage() {
             ))}
             {data?.data.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-cefide-muted">
+                <td colSpan={4} className="px-4 py-8 text-center text-cefide-muted">
                   No se encontraron alumnos
                 </td>
               </tr>
@@ -191,7 +155,6 @@ export function AlumnosPage() {
         </table>
       </div>
 
-      {/* Paginación */}
       {data && data.totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-cefide-muted">

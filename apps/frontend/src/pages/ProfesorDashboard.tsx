@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useApiGet } from '@/hooks/use-api';
 import { useAuthStore } from '@/stores/auth.store';
+import { FRECUENCIA_LABEL } from '@/types';
 import type { Alumno, PaginatedResponse } from '@/types';
 
 export function ProfesorDashboard() {
@@ -25,14 +26,6 @@ export function ProfesorDashboard() {
   function handleLogout() {
     logout();
     navigate('/login');
-  }
-
-  function getEstadoBadge(alumno: Alumno) {
-    if (alumno.pagado && alumno.clasesTotal - alumno.clasesUsadas > 0)
-      return <Badge variant="success">VERDE</Badge>;
-    if (!alumno.pagado && alumno.clasesTotal - alumno.clasesUsadas > 0)
-      return <Badge variant="warning">AMARILLO</Badge>;
-    return <Badge variant="destructive">ROJO</Badge>;
   }
 
   return (
@@ -73,53 +66,51 @@ export function ProfesorDashboard() {
         </Card>
 
         {data && data.data.length > 0 && (
-          <div className="rounded-lg border border-cefide-border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-cefide-surface">
-                <tr className="border-b border-cefide-border">
-                  <th className="px-4 py-3 text-left font-medium text-cefide-muted">DNI</th>
-                  <th className="px-4 py-3 text-left font-medium text-cefide-muted">Nombre</th>
-                  <th className="px-4 py-3 text-center font-medium text-cefide-muted">Clases</th>
-                  <th className="px-4 py-3 text-center font-medium text-cefide-muted">Pago</th>
-                  <th className="px-4 py-3 text-center font-medium text-cefide-muted">Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.data.map((alumno) => (
-                  <tr key={alumno.id} className="border-b border-cefide-border hover:bg-cefide-surface/50">
-                    <td className="px-4 py-3 font-mono">{alumno.dni}</td>
-                    <td className="px-4 py-3">{alumno.apellido}, {alumno.nombre}</td>
-                    <td className="px-4 py-3 text-center font-mono">
-                      {alumno.clasesUsadas}/{alumno.clasesTotal}
-                      <span className="text-cefide-muted ml-1">
-                        ({alumno.clasesTotal - alumno.clasesUsadas} restante{alumno.clasesTotal - alumno.clasesUsadas !== 1 ? 's' : ''})
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <Badge variant={alumno.pagado ? 'success' : 'destructive'}>
-                        {alumno.pagado ? 'Pagado' : 'Pendiente'}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {getEstadoBadge(alumno)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-4">
+            {data.data.map((alumno) => (
+              <Card key={alumno.id}>
+                <CardContent className="pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="font-semibold">{alumno.apellido}, {alumno.nombre}</p>
+                      <p className="text-sm text-cefide-muted font-mono">{alumno.dni}</p>
+                    </div>
+                    <Badge variant={alumno.activo ? 'success' : 'muted'}>
+                      {alumno.activo ? 'Activo' : 'Inactivo'}
+                    </Badge>
+                  </div>
+
+                  {alumno.inscripciones && alumno.inscripciones.length > 0 ? (
+                    <div className="space-y-2">
+                      {alumno.inscripciones.map((ins) => {
+                        const restantes = ins.clasesTotal - ins.clasesUsadas;
+                        return (
+                          <div key={ins.id} className="flex items-center justify-between text-sm bg-cefide-surface rounded-md px-3 py-2">
+                            <span className="font-medium">{ins.actividad.nombre}</span>
+                            <span className="text-cefide-muted">{FRECUENCIA_LABEL[ins.frecuencia]}</span>
+                            <span className="font-mono">{ins.clasesUsadas}/{ins.clasesTotal}</span>
+                            <Badge variant={ins.pagado && restantes > 0 ? 'success' : !ins.pagado && restantes > 0 ? 'warning' : 'destructive'}>
+                              {ins.pagado ? 'Pagado' : 'Pendiente'}
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-cefide-muted">Sin actividades inscriptas</p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
 
         {data && data.data.length === 0 && search && (
-          <p className="text-center text-cefide-muted py-8">
-            No se encontraron alumnos
-          </p>
+          <p className="text-center text-cefide-muted py-8">No se encontraron alumnos</p>
         )}
 
         {!search && (
-          <p className="text-center text-cefide-muted py-8">
-            Ingrese un DNI o nombre para buscar
-          </p>
+          <p className="text-center text-cefide-muted py-8">Ingrese un DNI o nombre para buscar</p>
         )}
       </main>
     </div>

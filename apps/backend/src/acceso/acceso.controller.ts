@@ -4,9 +4,18 @@ import { AccesoService } from './acceso.service';
 import { MolineteService } from '../molinete/molinete.service';
 import { EstadoIngreso } from '@prisma/client';
 
+class ConsultarAccesoDto {
+  @IsString()
+  dni: string;
+}
+
 class ValidarAccesoDto {
   @IsString()
   dni: string;
+
+  @IsOptional()
+  @IsString()
+  inscripcionId?: string;
 
   @IsOptional()
   @IsInt()
@@ -21,33 +30,38 @@ export class AccesoController {
   ) {}
 
   /**
+   * POST /api/acceso/consultar
+   * Paso 1: busca el alumno y devuelve sus inscripciones activas.
+   * No registra ingreso ni abre molinete.
+   */
+  @Post('consultar')
+  consultar(@Body() dto: ConsultarAccesoDto) {
+    return this.accesoService.consultarAcceso(dto.dni);
+  }
+
+  /**
    * POST /api/acceso/validar
-   * Endpoint público (usado por terminal kiosco)
-   * 1. Valida acceso (VERDE/AMARILLO/ROJO)
-   * 2. Registra ingreso en DB
-   * 3. Si acceso concedido (VERDE/AMARILLO), envía señal al molinete
+   * Paso 2: valida la inscripción seleccionada, registra ingreso y abre molinete.
    */
   @Post('validar')
   async validar(@Body() dto: ValidarAccesoDto) {
     const molineteNum = dto.molinete ?? 1;
-    const resultado = await this.accesoService.validarAcceso(dto.dni);
+    const inscripcionId = dto.inscripcionId ?? null;
 
-    // Registrar ingreso independientemente del estado
+    const resultado = await this.accesoService.validarAcceso(dto.dni, inscripcionId);
+
     await this.accesoService.registrarIngreso(
       dto.dni,
+      inscripcionId,
       resultado.estado,
       molineteNum,
     );
 
-    // Si acceso concedido, abrir molinete
     let molineteResponse = null;
     if (resultado.estado !== EstadoIngreso.ROJO) {
       molineteResponse = await this.molineteService.abrir(molineteNum);
     }
 
-    return {
-      ...resultado,
-      molinete: molineteResponse,
-    };
+    return { ...resultado, molinete: molineteResponse };
   }
 }

@@ -15,7 +15,6 @@ export class ProfesoresService {
   async findAll() {
     return this.prisma.profesor.findMany({
       include: {
-        _count: { select: { alumnos: true } },
         usuario: { select: { id: true, email: true } },
       },
       orderBy: { apellido: 'asc' },
@@ -26,7 +25,6 @@ export class ProfesoresService {
     const profesor = await this.prisma.profesor.findUnique({
       where: { id },
       include: {
-        _count: { select: { alumnos: true } },
         usuario: { select: { id: true, email: true } },
       },
     });
@@ -54,7 +52,6 @@ export class ProfesoresService {
         data: profesorData,
       });
 
-      // Si viene email+password, crear usuario vinculado
       if (email && password) {
         const hashedPassword = await bcrypt.hash(password, 10);
         await tx.usuario.create({
@@ -70,7 +67,6 @@ export class ProfesoresService {
       return tx.profesor.findUnique({
         where: { id: profesor.id },
         include: {
-          _count: { select: { alumnos: true } },
           usuario: { select: { id: true, email: true } },
         },
       });
@@ -82,7 +78,6 @@ export class ProfesoresService {
     const { email, password, ...profesorData } = dto;
 
     return this.prisma.$transaction(async (tx) => {
-      // Actualizar datos del profesor si vienen
       if (Object.keys(profesorData).length > 0) {
         await tx.profesor.update({
           where: { id },
@@ -90,10 +85,8 @@ export class ProfesoresService {
         });
       }
 
-      // Actualizar o crear usuario vinculado
       if (email || password) {
         if (profesor.usuario) {
-          // Ya tiene cuenta — actualizar
           const updateData: Record<string, string> = {};
           if (email) updateData.email = email;
           if (password) updateData.password = await bcrypt.hash(password, 10);
@@ -102,7 +95,6 @@ export class ProfesoresService {
             data: updateData,
           });
         } else if (email && password) {
-          // No tiene cuenta — crear nueva
           await tx.usuario.create({
             data: {
               email,
@@ -117,7 +109,6 @@ export class ProfesoresService {
       return tx.profesor.findUnique({
         where: { id },
         include: {
-          _count: { select: { alumnos: true } },
           usuario: { select: { id: true, email: true } },
         },
       });
@@ -127,19 +118,7 @@ export class ProfesoresService {
   async remove(id: string) {
     await this.findOne(id);
 
-    // Verificar que no tenga alumnos asignados
-    const count = await this.prisma.alumno.count({
-      where: { profesorId: id },
-    });
-
-    if (count > 0) {
-      throw new ConflictException(
-        `No se puede eliminar: tiene ${count} alumno(s) asignado(s)`,
-      );
-    }
-
     return this.prisma.$transaction(async (tx) => {
-      // Eliminar usuario vinculado si existe
       await tx.usuario.deleteMany({ where: { profesorId: id } });
       return tx.profesor.delete({ where: { id } });
     });

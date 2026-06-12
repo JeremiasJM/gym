@@ -10,6 +10,8 @@ import { MolineteModule } from './molinete/molinete.module';
 import { IngresosModule } from './ingresos/ingresos.module';
 import { ReportesModule } from './reportes/reportes.module';
 import { ConfigSistemaModule } from './config-sistema/config-sistema.module';
+import { ActividadesModule } from './actividades/actividades.module';
+import { InscripcionesModule } from './inscripciones/inscripciones.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -23,6 +25,8 @@ import { HealthController } from './health.controller';
     AuthModule,
     AlumnosModule,
     ProfesoresModule,
+    ActividadesModule,
+    InscripcionesModule,
     AccesoModule,
     MolineteModule,
     IngresosModule,

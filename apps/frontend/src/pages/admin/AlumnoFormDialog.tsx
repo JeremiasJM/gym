@@ -8,17 +8,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth.store';
-import { useApiGet } from '@/hooks/use-api';
-import type { Alumno, Profesor } from '@/types';
+import type { Alumno } from '@/types';
 
 interface Props {
   open: boolean;
@@ -29,12 +21,10 @@ interface Props {
 
 export function AlumnoFormDialog({ open, onClose, onSuccess, alumno }: Props) {
   const token = useAuthStore((s) => s.token);
-  const { data: profesores } = useApiGet<Profesor[]>('/profesores');
 
   const [dni, setDni] = useState('');
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
-  const [profesorId, setProfesorId] = useState<string>('none');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -45,12 +35,10 @@ export function AlumnoFormDialog({ open, onClose, onSuccess, alumno }: Props) {
       setDni(alumno.dni);
       setNombre(alumno.nombre);
       setApellido(alumno.apellido);
-      setProfesorId(alumno.profesorId ?? 'none');
     } else {
       setDni('');
       setNombre('');
       setApellido('');
-      setProfesorId('none');
     }
     setError('');
   }, [alumno, open]);
@@ -60,12 +48,7 @@ export function AlumnoFormDialog({ open, onClose, onSuccess, alumno }: Props) {
     setSaving(true);
     setError('');
 
-    const body = {
-      dni,
-      nombre,
-      apellido,
-      profesorId: profesorId === 'none' ? null : profesorId,
-    };
+    const body = { dni, nombre, apellido };
 
     try {
       if (isEdit) {
@@ -130,22 +113,6 @@ export function AlumnoFormDialog({ open, onClose, onSuccess, alumno }: Props) {
                 minLength={2}
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Profesor</Label>
-            <Select value={profesorId} onValueChange={setProfesorId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sin profesor asignado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sin profesor</SelectItem>
-                {profesores?.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.apellido}, {p.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           {error && <p className="text-sm text-cefide-accent-alt">{error}</p>}

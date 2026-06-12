@@ -4,20 +4,13 @@ import {
   Query,
   Res,
   UseGuards,
-  Req,
 } from '@nestjs/common';
-import { Response, Request } from 'express';
+import { Response } from 'express';
 import { ReportesService } from './reportes.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard, Roles } from '../auth/guards/roles.guard';
 import { Rol } from '@prisma/client';
-
-interface AuthUser {
-  id: string;
-  rol: Rol;
-  profesorId: string | null;
-}
 
 @Controller('reportes')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -28,24 +21,17 @@ export class ReportesController {
   ) {}
 
   @Get('actividad')
-  reporteActividad(
-    @Req() req: Request,
-    @Query('profesorId') profesorId?: string,
-  ) {
-    const user = req.user as AuthUser;
-    const filterProfesorId =
-      user.rol === Rol.PROFESOR ? user.profesorId! : profesorId;
-
-    return this.reportesService.reporteActividad(filterProfesorId);
+  reporteActividad(@Query('actividadId') actividadId?: string) {
+    return this.reportesService.reporteActividad(actividadId);
   }
 
   @Get('actividad/csv')
   @Roles(Rol.ADMIN)
   async exportCsv(
     @Res() res: Response,
-    @Query('profesorId') profesorId?: string,
+    @Query('actividadId') actividadId?: string,
   ) {
-    const datos = await this.reportesService.reporteActividad(profesorId);
+    const datos = await this.reportesService.reporteActividad(actividadId);
     const csv = this.reportesService.generarCsv(datos);
 
     const fecha = new Date().toISOString().split('T')[0];
@@ -96,9 +82,8 @@ export class ReportesController {
       this.prisma.pago.findMany({
         where,
         include: {
-          alumno: {
-            select: { dni: true, nombre: true, apellido: true },
-          },
+          alumno: { select: { dni: true, nombre: true, apellido: true } },
+          inscripcion: { include: { actividad: { select: { nombre: true } } } },
         },
         orderBy: { fecha: 'desc' },
         skip,

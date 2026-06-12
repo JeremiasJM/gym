@@ -1,55 +1,57 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
-export interface ReporteAlumno {
+export interface ReporteInscripcion {
   dni: string;
   nombre: string;
   apellido: string;
-  profesor: string;
+  actividad: string;
+  frecuencia: string;
   clasesTotal: number;
   clasesUsadas: number;
   clasesRestantes: number;
   pagado: boolean;
   fechaPago: Date | null;
-  activo: boolean;
 }
 
 @Injectable()
 export class ReportesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async reporteActividad(profesorId?: string): Promise<ReporteAlumno[]> {
-    const where: Record<string, unknown> = { activo: true };
-    if (profesorId) where.profesorId = profesorId;
+  async reporteActividad(actividadId?: string): Promise<ReporteInscripcion[]> {
+    const where: Record<string, unknown> = { alumno: { activo: true } };
+    if (actividadId) where.actividadId = actividadId;
 
-    const alumnos = await this.prisma.alumno.findMany({
+    const inscripciones = await this.prisma.inscripcionActividad.findMany({
       where,
       include: {
-        profesor: { select: { nombre: true, apellido: true } },
+        alumno: { select: { dni: true, nombre: true, apellido: true } },
+        actividad: { select: { nombre: true } },
       },
-      orderBy: [{ apellido: 'asc' }, { nombre: 'asc' }],
+      orderBy: [{ alumno: { apellido: 'asc' } }, { alumno: { nombre: 'asc' } }],
     });
 
-    return alumnos.map((a) => ({
-      dni: a.dni,
-      nombre: a.nombre,
-      apellido: a.apellido,
-      profesor: a.profesor ? `${a.profesor.apellido}, ${a.profesor.nombre}` : 'Sin asignar',
-      clasesTotal: a.clasesTotal,
-      clasesUsadas: a.clasesUsadas,
-      clasesRestantes: a.clasesTotal - a.clasesUsadas,
-      pagado: a.pagado,
-      fechaPago: a.fechaPago,
-      activo: a.activo,
+    return inscripciones.map((i) => ({
+      dni: i.alumno.dni,
+      nombre: i.alumno.nombre,
+      apellido: i.alumno.apellido,
+      actividad: i.actividad.nombre,
+      frecuencia: i.frecuencia,
+      clasesTotal: i.clasesTotal,
+      clasesUsadas: i.clasesUsadas,
+      clasesRestantes: i.clasesTotal - i.clasesUsadas,
+      pagado: i.pagado,
+      fechaPago: i.fechaPago,
     }));
   }
 
-  generarCsv(datos: ReporteAlumno[]): string {
+  generarCsv(datos: ReporteInscripcion[]): string {
     const headers = [
       'DNI',
       'Apellido',
       'Nombre',
-      'Profesor',
+      'Actividad',
+      'Frecuencia',
       'Clases Total',
       'Clases Realizadas',
       'Clases Restantes',
@@ -61,7 +63,8 @@ export class ReportesService {
       d.dni,
       d.apellido,
       d.nombre,
-      d.profesor,
+      d.actividad,
+      d.frecuencia,
       d.clasesTotal,
       d.clasesUsadas,
       d.clasesRestantes,
@@ -69,7 +72,7 @@ export class ReportesService {
       d.fechaPago ? new Date(d.fechaPago).toLocaleDateString('es-AR') : '',
     ]);
 
-    const bom = '\uFEFF'; // UTF-8 BOM for Excel compatibility
+    const bom = '﻿';
     return bom + [headers, ...rows].map((r) => r.join(';')).join('\n');
   }
 }
