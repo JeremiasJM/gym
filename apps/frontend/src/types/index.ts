@@ -46,6 +46,7 @@ export interface Profesor {
   nombre: string;
   apellido: string;
   usuario?: { id: string; email: string } | null;
+  _count?: { alumnos: number };
 }
 
 export interface ConfigSistema {

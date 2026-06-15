@@ -52,7 +52,22 @@
       "Bash(Write-Output \"DTOs eliminados\")",
       "Bash(Start-Sleep -Seconds 8)",
       "Bash(Get-Content \"C:\\\\Users\\\\Jerem\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Jerem-Desktop-fullmintech-gym\\\\11fb564b-db86-4ed6-bc3a-8f622ae002c7\\\\tasks\\\\bmc0ziogs.output\")",
-      "Bash(Select-Object -Last 20)"
+      "Bash(Select-Object -Last 20)",
+      "PowerShell(docker compose version *)",
+      "PowerShell(docker ps 2>&1 | Select-Object -First 1; \"---migrations---\"; Get-ChildItem \"apps\\\\backend\\\\prisma\\\\migrations\" -ErrorAction SilentlyContinue | Select-Object Name)",
+      "PowerShell(docker compose up *)",
+      "PowerShell(docker info *)",
+      "PowerShell(docker compose *)",
+      "PowerShell(docker compose logs *)",
+      "PowerShell(\"=== LOGIN ===\"; try { $r = Invoke-RestMethod -Uri http://localhost:3000/api/auth/login -Method Post -Body \\(@{email=\"admin@cefide.com\";password=\"admin123\"} | ConvertTo-Json\\) -ContentType \"application/json\" -TimeoutSec 5; if\\($r.access_token -or $r.token\\){\"LOGIN OK - token recibido\"}else{$r | ConvertTo-Json -Compress} } catch { \"LOGIN FAIL: \" + $_.Exception.Message }; \"=== FRONTEND ===\"; try { \\(Invoke-WebRequest http://localhost:5173 -UseBasicParsing -TimeoutSec 5\\).StatusCode } catch { $_.Exception.Message })",
+      "PowerShell(git *)",
+      "PowerShell(git -C $cef status --short)",
+      "PowerShell(git -C $cef rev-parse --abbrev-ref HEAD)",
+      "PowerShell(git -C $cef checkout -b jeremias 2>&1)",
+      "PowerShell($cef=\"C:\\\\Users\\\\Jerem\\\\Desktop\\\\fullmintech\\\\cefide-gym\")",
+      "PowerShell(\"=== status ===\")",
+      "PowerShell(\"=== branch actual ===\")",
+      "PowerShell(\"=== crear rama jeremias ===\")"
     ]
   }
 }

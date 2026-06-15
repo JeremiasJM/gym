@@ -20,7 +20,7 @@ import { Label } from '@/components/ui/label';
 import { useApiGet } from '@/hooks/use-api';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth.store';
-import type { Actividad, InscripcionActividad, PaginatedResponse, FRECUENCIA_LABEL } from '@/types';
+import type { Actividad, Alumno, InscripcionActividad, PaginatedResponse } from '@/types';
 import { FRECUENCIA_LABEL as FL } from '@/types';
 
 interface InscripcionFlat extends InscripcionActividad {
@@ -47,7 +47,30 @@ export function ClasesPagosPage() {
   const [nuevaDialog, setNuevaDialog] = useState(false);
   const [nuevaForm, setNuevaForm] = useState<NuevaInscripcionForm>({ alumnoId: '', actividadId: '', frecuencia: 'DOS_VECES' });
 
+  // Buscador de alumno (por DNI / nombre) dentro del dialog
+  const [alumnoSearch, setAlumnoSearch] = useState('');
+  const [alumnoSel, setAlumnoSel] = useState<Alumno | null>(null);
+
   const { data: actividades } = useApiGet<Actividad[]>('/actividades?soloActivas=true');
+
+  const { data: alumnosResult } = useApiGet<PaginatedResponse<Alumno>>(
+    nuevaDialog && !alumnoSel && alumnoSearch.trim().length >= 2
+      ? `/alumnos?search=${encodeURIComponent(alumnoSearch.trim())}&activo=true&limit=8`
+      : null,
+  );
+
+  function seleccionarAlumno(a: Alumno) {
+    setAlumnoSel(a);
+    setNuevaForm((f) => ({ ...f, alumnoId: a.id }));
+    setAlumnoSearch('');
+  }
+
+  function resetNuevaInscripcion() {
+    setNuevaDialog(false);
+    setNuevaForm({ alumnoId: '', actividadId: '', frecuencia: 'DOS_VECES' });
+    setAlumnoSel(null);
+    setAlumnoSearch('');
+  }
 
   const params = new URLSearchParams();
   if (search) params.set('search', search);
@@ -90,8 +113,7 @@ export function ClasesPagosPage() {
       body: JSON.stringify(nuevaForm),
       token: token!,
     });
-    setNuevaDialog(false);
-    setNuevaForm({ alumnoId: '', actividadId: '', frecuencia: 'DOS_VECES' });
+    resetNuevaInscripcion();
     mutate();
   }
 
@@ -240,20 +262,59 @@ export function ClasesPagosPage() {
       </Dialog>
 
       {/* Nueva inscripción dialog */}
-      <Dialog open={nuevaDialog} onOpenChange={(v) => !v && setNuevaDialog(false)}>
+      <Dialog open={nuevaDialog} onOpenChange={(v) => !v && resetNuevaInscripcion()}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Nueva Inscripción</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>ID del Alumno</Label>
-              <Input
-                placeholder="ID del alumno"
-                value={nuevaForm.alumnoId}
-                onChange={(e) => setNuevaForm((f) => ({ ...f, alumnoId: e.target.value }))}
-              />
-              <p className="text-xs text-cefide-muted">Buscar en la pestaña Alumnos y copiar el ID</p>
+              <Label>Alumno</Label>
+              {alumnoSel ? (
+                <div className="flex items-center justify-between rounded-md border border-cefide-border bg-cefide-surface px-3 py-2">
+                  <span className="text-sm">
+                    <span className="font-mono">{alumnoSel.dni}</span> — {alumnoSel.apellido}, {alumnoSel.nombre}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => { setAlumnoSel(null); setNuevaForm((f) => ({ ...f, alumnoId: '' })); }}
+                    title="Cambiar alumno"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cefide-muted" />
+                  <Input
+                    placeholder="Buscar por DNI, nombre o apellido..."
+                    value={alumnoSearch}
+                    onChange={(e) => setAlumnoSearch(e.target.value)}
+                    className="pl-9"
+                    autoFocus
+                  />
+                  {alumnoSearch.trim().length >= 2 && (
+                    <div className="absolute z-10 mt-1 w-full rounded-md border border-cefide-border bg-cefide-surface shadow-lg max-h-56 overflow-auto">
+                      {alumnosResult?.data.length ? (
+                        alumnosResult.data.map((a) => (
+                          <button
+                            key={a.id}
+                            type="button"
+                            onClick={() => seleccionarAlumno(a)}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-cefide-border/50"
+                          >
+                            <span className="font-mono text-cefide-muted">{a.dni}</span>
+                            <span>{a.apellido}, {a.nombre}</span>
+                          </button>
+                        ))
+                      ) : (
+                        <p className="px-3 py-2 text-sm text-cefide-muted">Sin resultados</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Actividad</Label>
@@ -283,8 +344,8 @@ export function ClasesPagosPage() {
               </Select>
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setNuevaDialog(false)}>Cancelar</Button>
-              <Button onClick={handleNuevaInscripcion}>Crear</Button>
+              <Button variant="outline" onClick={resetNuevaInscripcion}>Cancelar</Button>
+              <Button onClick={handleNuevaInscripcion} disabled={!nuevaForm.alumnoId || !nuevaForm.actividadId}>Crear</Button>
             </div>
           </div>
         </DialogContent>
