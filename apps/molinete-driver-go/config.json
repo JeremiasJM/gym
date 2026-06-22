@@ -1,0 +1,7 @@
+{
+  "http_port": 3001,
+  "com_port": "COM1",
+  "pulse_ms": 500,
+  "pin": "HAB1",
+  "allow_origin": "https://cefide-client.fmtcloud.com.ar"
+}

@@ -1,8 +1,6 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { IsString, IsOptional, IsInt } from 'class-validator';
 import { AccesoService } from './acceso.service';
-import { MolineteService } from '../molinete/molinete.service';
-import { EstadoIngreso } from '@prisma/client';
 
 class ConsultarAccesoDto {
   @IsString()
@@ -24,10 +22,7 @@ class ValidarAccesoDto {
 
 @Controller('acceso')
 export class AccesoController {
-  constructor(
-    private readonly accesoService: AccesoService,
-    private readonly molineteService: MolineteService,
-  ) {}
+  constructor(private readonly accesoService: AccesoService) {}
 
   /**
    * POST /api/acceso/consultar
@@ -41,7 +36,10 @@ export class AccesoController {
 
   /**
    * POST /api/acceso/validar
-   * Paso 2: valida la inscripción seleccionada, registra ingreso y abre molinete.
+   * Paso 2: valida la inscripción seleccionada y registra el ingreso.
+   *
+   * La apertura física la dispara el navegador del kiosco contra su driver
+   * local (localhost). El backend en la nube NO puede alcanzar el molinete.
    */
   @Post('validar')
   async validar(@Body() dto: ValidarAccesoDto) {
@@ -57,11 +55,6 @@ export class AccesoController {
       molineteNum,
     );
 
-    let molineteResponse = null;
-    if (resultado.estado !== EstadoIngreso.ROJO) {
-      molineteResponse = await this.molineteService.abrir(molineteNum);
-    }
-
-    return { ...resultado, molinete: molineteResponse };
+    return resultado;
   }
 }

@@ -25,16 +25,18 @@ export class MolineteController {
 
   /**
    * POST /api/molinete/:num/contingencia
-   * Botón de contingencia: abre molinete sin importar estado del alumno
-   * Solo ADMIN puede usar esto
+   * Registra una apertura manual de contingencia (log/auditoría).
+   * Solo ADMIN.
+   *
+   * La apertura física la dispara el navegador del admin contra su driver
+   * local (localhost). El backend en la nube NO alcanza el molinete; este
+   * endpoint solo deja registro del ingreso.
    */
   @Post(':num/contingencia')
   async contingencia(
     @Param('num', ParseIntPipe) num: number,
     @Body() body: { dni?: string; motivo?: string },
   ) {
-    const resultado = await this.molineteService.abrir(num);
-
     // Registrar ingreso de contingencia si viene DNI
     if (body.dni) {
       const alumno = await this.prisma.alumno.findUnique({
@@ -53,7 +55,7 @@ export class MolineteController {
     }
 
     return {
-      ...resultado,
+      ok: true,
       contingencia: true,
       molinete: num,
       motivo: body.motivo || 'Apertura de contingencia',

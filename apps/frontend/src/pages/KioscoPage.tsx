@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { api, ApiError } from '@/lib/api';
+import { abrirMolineteLocal } from '@/lib/molinete';
 
 type Estado = 'idle' | 'loading_consultar' | 'seleccion' | 'loading_validar' | 'VERDE' | 'AMARILLO' | 'ROJO' | 'error';
 
@@ -124,6 +125,12 @@ export function KioscoPage() {
       });
       setResultado(res);
       setEstado(res.estado);
+
+      // Abrir molinete local (driver en esta misma PC). Fire-and-forget:
+      // el feedback visual ya se muestra; si el aparato no responde se ignora.
+      if (res.estado !== 'ROJO') {
+        void abrirMolineteLocal();
+      }
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setErrorMsg('DNI no registrado');

@@ -1,0 +1,6 @@
+# Binario buildeado — se genera con `go build`, no se versiona
+molinete-driver.exe
+molinete-driver
+
+# Carpeta de pruebas locales
+_localtest/
