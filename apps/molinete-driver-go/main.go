@@ -70,6 +70,9 @@ func loadConfig() Config {
 		log.Printf("[WARN] config.json no encontrado (%s) — usando defaults", path)
 		return c
 	}
+	// Notepad/PowerShell en Windows suelen guardar UTF-8 con BOM; lo sacamos
+	// para que el parser JSON no falle con "invalid character 'ï'".
+	data = bytes.TrimPrefix(data, []byte{0xEF, 0xBB, 0xBF})
 	if err := json.Unmarshal(data, &c); err != nil {
 		log.Fatalf("[FATAL] config.json inválido: %v", err)
 	}
