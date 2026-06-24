@@ -1,39 +1,60 @@
-# Molinete Driver — DCM PCA150 (Go)
+# Molinete Driver / Proxy — (Go)
 
-`.exe` único que controla el molinete físico via puerto serie (COM).
-DEBE correr en la PC física conectada al molinete. Cero dependencias en runtime.
+`.exe` único que corre en la PC del gym y expone un endpoint HTTP en
+`localhost` que el navegador del kiosco puede llamar (`localhost` está exento
+del bloqueo mixed-content, por eso un front HTTPS puede llamarlo). Cero
+dependencias en runtime.
 
-## Build (una vez, en máquina con Go instalado)
+## Dos modos (`config.json` → `mode`)
+
+- **`proxy`** (default) — el molinete es un dispositivo de **red con IP**. El
+  driver reenvía el POST a esa URL (`target`). No usa puerto serie.
+- **`serial`** — el molinete va por **cable** (placa PCA150 por COM). El driver
+  manda el pulso por el puerto serie.
+
+```
+proxy:   Browser → POST localhost:3001/abrir → driver → POST http://IP-molinete/...
+serial:  Browser → POST localhost:3001/abrir → driver → bytes por COM → placa PCA150
+```
+
+## Build (una vez, en máquina con Go)
 
 ```powershell
 cd apps/molinete-driver-go
-go mod tidy          # baja go.bug.st/serial, genera go.sum
+go mod tidy
 go build -o molinete-driver.exe .
 ```
 
-Resultado: `molinete-driver.exe` estático. Copiás eso + `config.json` a cada PC. No hace falta Go ni Node en la PC del gym.
+Cross-compile: `GOOS=windows GOARCH=amd64 go build -o molinete-driver.exe .`
 
-### Cross-compile desde otro SO
+## config.json
 
-```bash
-GOOS=windows GOARCH=amd64 go build -o molinete-driver.exe .
-```
-
-## config.json (al lado del .exe)
-
+Modo proxy:
 ```json
 {
   "http_port": 3001,
-  "com_port": "COM1",
-  "pulse_ms": 500,
-  "pin": "HAB1",
-  "allow_origin": "https://TU-FRONT.com"
+  "mode": "proxy",
+  "allow_origin": "https://cefide-client.fmtcloud.com.ar",
+  "timeout_ms": 5000,
+  "target": "http://molinete1.local:3001/molinete1"
 }
 ```
 
-- `com_port` — puerto serie de la placa (COM1, COM3, etc.).
-- `pin` — `HAB1` o `HAB2`. Con 2 PCs separadas, cada una usa `HAB1` (abre su aparato).
-- `allow_origin` — origin del front en la nube. `"*"` permite cualquiera (menos seguro).
+Modo serial:
+```json
+{
+  "http_port": 3001,
+  "mode": "serial",
+  "allow_origin": "https://cefide-client.fmtcloud.com.ar",
+  "com_port": "COM1",
+  "pulse_ms": 500,
+  "pin": "HAB1"
+}
+```
+
+- `target` (proxy) — URL real del molinete en la red. El driver reenvía el POST tal cual.
+- `com_port` (serial) — puerto de la placa. Sin placa → modo simulación.
+- `allow_origin` — origin del front. `"*"` permite cualquiera.
 
 ## Ejecución
 
@@ -41,19 +62,14 @@ GOOS=windows GOARCH=amd64 go build -o molinete-driver.exe .
 .\molinete-driver.exe
 ```
 
-Lee `config.json` del mismo directorio. Para autostart: Task Scheduler de Windows (trigger "al iniciar sesión").
+Lee `config.json` del mismo directorio. Autostart: Task Scheduler ("al iniciar sesión").
 
 ## Endpoints
 
-- `POST /abrir` — envía pulso al molinete. Body vacío `{}` o `{ "pin": "HAB1" }` (ignora pin del body; usa el de config).
-- `GET /status` — health check.
+- `POST /abrir` — proxy: reenvía a `target` y devuelve su respuesta. serial: pulso al COM.
+- `GET /status` — proxy: `{mode, target, reachable}`. serial: `{mode, comPort, simulationMode}`.
 
-## Modo simulación
+## Protocolo serial (modo serial)
 
-Si el COM no se puede abrir (dev sin hardware), arranca en modo simulación: logea el pulso, no manda datos reales.
-
-## Protocolo
-
-- Placa: DCM PCA150, contacto seco.
-- Pulso `pulse_ms` (500ms): escribe `0x01`(HAB1)/`0x02`(HAB2), espera, escribe `0x00`.
-- COM: 9600 8N1.
+Placa DCM PCA150, contacto seco. Pulso `pulse_ms`: `0x01`(HAB1)/`0x02`(HAB2),
+espera, `0x00`. COM 9600 8N1.

@@ -1,0 +1,74 @@
+MOLINETE DRIVER / PROXY - Prueba rapida
+=======================================
+
+Contenido del zip:
+  - molinete-driver.exe   -> el driver (no necesita instalar nada)
+  - config.json           -> configuracion (editar antes de correr)
+
+El driver corre en la PC del gym y expone un endpoint HTTP en localhost que
+el navegador del kiosco puede llamar. Tiene DOS modos (campo "mode"):
+
+  "proxy"  -> el molinete es un dispositivo de RED con IP. El driver reenvia
+              el POST a esa IP. (MODO POR DEFECTO)
+  "serial" -> el molinete va por CABLE (placa PCA150 por puerto COM).
+
+-------------------------------------------------
+1) EDITAR config.json
+-------------------------------------------------
+MODO PROXY (molinete con IP en la red):
+
+  {
+    "http_port": 3001,
+    "mode": "proxy",
+    "allow_origin": "https://cefide-client.fmtcloud.com.ar",
+    "timeout_ms": 5000,
+    "target": "http://molinete1.local:3001/molinete1"   <- URL REAL del molinete
+  }
+
+  Cambiar "target" por la URL/IP real del molinete en la red, ej:
+    http://192.168.1.50/abrir   o   http://molinete1.local:3001/molinete1
+  El driver reenvia el POST tal cual a esa URL.
+
+MODO SERIAL (placa PCA150 por COM), si fuese por cable:
+
+  {
+    "http_port": 3001,
+    "mode": "serial",
+    "allow_origin": "https://cefide-client.fmtcloud.com.ar",
+    "com_port": "COM1",     <- COM real de la placa (Administrador de dispositivos)
+    "pulse_ms": 500,
+    "pin": "HAB1"
+  }
+  Sin placa conectada arranca en SIMULACION (loguea, no manda nada).
+
+-------------------------------------------------
+2) CORRER
+-------------------------------------------------
+Doble click en molinete-driver.exe  (o terminal: .\molinete-driver.exe)
+
+Windows puede mostrar "Windows protegio tu PC" (SmartScreen):
+  -> Mas informacion -> Ejecutar de todas formas.
+
+Al arrancar muestra el modo y, segun el modo, el Target o el COM.
+
+-------------------------------------------------
+3) PROBAR
+-------------------------------------------------
+Estado (en el navegador):   http://localhost:3001/status
+  proxy  -> {"mode":"proxy","target":"...","reachable":true/false}
+  serial -> {"mode":"serial","comPort":"...","simulationMode":...}
+
+Abrir (desde otra terminal):
+  curl -X POST http://localhost:3001/abrir
+
+  proxy  -> reenvia el POST al "target" y devuelve lo que responde el molinete.
+  serial -> manda el pulso por el COM (o lo simula).
+
+-------------------------------------------------
+NOTAS
+-------------------------------------------------
+- El driver DEBE correr en una PC que alcance al molinete
+  (misma red en modo proxy / cable COM en modo serial).
+- Cada PC del gym controla su molinete (su propio "target").
+- Si el puerto 3001 esta ocupado, cambiar "http_port".
+- Autostart al prender la PC: Programador de tareas (disparador "al iniciar sesion").
