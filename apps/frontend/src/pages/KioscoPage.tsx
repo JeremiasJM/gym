@@ -172,7 +172,7 @@ export function KioscoPage() {
       // Abrir molinete local (driver en esta misma PC). Fire-and-forget:
       // el feedback visual ya se muestra; si el aparato no responde se ignora.
       if (res.estado !== 'ROJO') {
-        void abrirMolineteLocal();
+        void abrirMolineteLocal(molinete.current);
       }
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {

@@ -27,7 +27,7 @@ export function MolinetesPage() {
   const [lastAction, setLastAction] = useState<string | null>(null);
 
   async function fetchStatus() {
-    setStatus(await statusMolineteLocal());
+    setStatus(await statusMolineteLocal(num.current));
   }
 
   useEffect(() => {
@@ -40,8 +40,8 @@ export function MolinetesPage() {
     setOpening(true);
     setLastAction(null);
 
-    // 1. Apertura física contra el driver local de esta PC.
-    const apertura = await abrirMolineteLocal();
+    // 1. Apertura física contra el proxy local de esta PC.
+    const apertura = await abrirMolineteLocal(num.current);
 
     // 2. Registrar la contingencia en el backend (auditoría), aunque la
     //    apertura física la hizo el navegador.
@@ -84,8 +84,8 @@ export function MolinetesPage() {
           <CardTitle className="text-lg">Molinete {num.current}</CardTitle>
           {status ? (
             status.ok ? (
-              <Badge variant={status.simulationMode ? 'warning' : 'success'}>
-                {status.simulationMode ? 'Simulación' : 'Conectado'}
+              <Badge variant={status.online === false ? 'warning' : 'success'}>
+                {status.online === false ? 'ESP sin responder' : 'Conectado'}
               </Badge>
             ) : (
               <Badge variant="destructive">Desconectado</Badge>
@@ -99,8 +99,8 @@ export function MolinetesPage() {
             <div className="text-sm text-cefide-muted space-y-1">
               {status.ok ? (
                 <>
-                  <p>Puerto COM: {status.comPort ?? '—'}</p>
-                  <p>Pulso: {status.pulseMs ?? '—'}ms</p>
+                  <p>Estado ESP: {status.estado ?? '—'}</p>
+                  <p>Alcanzable: {status.online === false ? 'no' : 'sí'}</p>
                 </>
               ) : (
                 <p className="text-cefide-accent-alt">{status.error}</p>

@@ -1,11 +1,17 @@
 import { config } from '@/config/env';
 
 /**
- * Cliente del driver local del molinete.
+ * Cliente del proxy local del molinete (GymProxy).
  *
- * El driver corre en la MISMA PC que el navegador (localhost). Un front HTTPS
- * puede llamar a localhost sin bloqueo mixed-content. Cada PC abre/consulta
- * solo su propio molinete; NO se puede alcanzar el driver de otra PC por LAN.
+ * GymProxy corre en la MISMA PC que el navegador (localhost:8080 por defecto).
+ * Un front HTTPS puede llamar a localhost sin bloqueo mixed-content. El proxy
+ * reenvía a la ESP/molinete de red según el nombre de target y su `config.json`:
+ *
+ *   ${driverBase}/proxy/<molineteN>/<ruta-esp>
+ *     → http://<ip-de-la-esp>/<ruta-esp>
+ *
+ * El nombre de target (`molinete1`, `molinete2`, ...) debe coincidir con las
+ * keys de `targets{}` en el config.json de GymProxy.
  */
 
 const DRIVER = config.driverBase;
@@ -17,20 +23,24 @@ export interface DriverResult {
 
 export interface DriverStatus {
   ok: boolean;
-  comPort?: string;
-  pulseMs?: number;
-  pin?: string;
-  simulationMode?: boolean;
+  /** Estado reportado por la ESP, ej "abierto" | "cerrado". */
+  estado?: string;
+  /** La ESP está alcanzable desde el proxy. */
+  online?: boolean;
   error?: string;
 }
 
-/** Envía pulso de apertura al molinete local. */
-export async function abrirMolineteLocal(): Promise<DriverResult> {
+/** Nombre de target en el config.json de GymProxy. */
+function targetName(molineteId: number): string {
+  return `molinete${molineteId}`;
+}
+
+/** Envía la orden de apertura a la ESP del molinete vía el proxy local. */
+export async function abrirMolineteLocal(molineteId: number): Promise<DriverResult> {
   try {
-    const res = await fetch(`${DRIVER}/abrir`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: '{}',
+    const url = `${DRIVER}/proxy/${targetName(molineteId)}/${config.molineteOpenPath}`;
+    const res = await fetch(url, {
+      method: config.molineteOpenMethod,
       signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
@@ -40,12 +50,14 @@ export async function abrirMolineteLocal(): Promise<DriverResult> {
   }
 }
 
-/** Estado del driver local. */
-export async function statusMolineteLocal(): Promise<DriverStatus> {
+/** Consulta el estado de la ESP del molinete vía el proxy local. */
+export async function statusMolineteLocal(molineteId: number): Promise<DriverStatus> {
   try {
-    const res = await fetch(`${DRIVER}/status`, { signal: AbortSignal.timeout(3000) });
+    const url = `${DRIVER}/proxy/${targetName(molineteId)}/${config.molineteStatusPath}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
     if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
-    return await res.json();
+    const data = (await res.json()) as { estado?: string; online?: boolean };
+    return { ok: true, estado: data.estado, online: data.online };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'No responde' };
   }

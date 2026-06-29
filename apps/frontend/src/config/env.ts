@@ -12,15 +12,33 @@
 const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
 
 /**
- * URL del driver local del molinete (corre en la MISMA PC que el navegador).
- * `localhost` está exento del bloqueo mixed-content, por eso un front HTTPS
- * puede llamarlo. Cada PC abre solo su propio molinete.
+ * URL del proxy local del molinete (GymProxy, corre en la MISMA PC que el
+ * navegador). `localhost`/`127.0.0.1` está exento del bloqueo mixed-content,
+ * por eso un front HTTPS puede llamarlo. El proxy reenvía a la ESP/molinete
+ * de red según `targets{}` en su `config.json`.
+ *
+ * El front pega a `${driverBase}/proxy/<molineteN>/<ruta-esp>`.
  */
-const DRIVER_URL = (import.meta.env.VITE_DRIVER_URL ?? 'http://localhost:3001').replace(/\/$/, '');
+const DRIVER_URL = (import.meta.env.VITE_DRIVER_URL ?? 'http://127.0.0.1:8080').replace(/\/$/, '');
+
+/** Ruta en la ESP para abrir (último segmento del proxy). Ajustable si la ESP usa otra. */
+const MOLINETE_OPEN_PATH = (import.meta.env.VITE_MOLINETE_OPEN_PATH ?? 'abrir').replace(/^\//, '');
+
+/** Ruta en la ESP para consultar estado. */
+const MOLINETE_STATUS_PATH = (import.meta.env.VITE_MOLINETE_STATUS_PATH ?? 'estado').replace(/^\//, '');
+
+/** Método HTTP para la apertura (la ESP del demo abre con GET). */
+const MOLINETE_OPEN_METHOD = (import.meta.env.VITE_MOLINETE_OPEN_METHOD ?? 'GET').toUpperCase();
 
 export const config = {
   /** Endpoint base del API (incluye el prefijo `/api`). */
   apiBase: `${API_URL}/api`,
-  /** Base del driver local del molinete. */
+  /** Base del proxy local del molinete (GymProxy). */
   driverBase: DRIVER_URL,
+  /** Ruta ESP de apertura. */
+  molineteOpenPath: MOLINETE_OPEN_PATH,
+  /** Ruta ESP de estado. */
+  molineteStatusPath: MOLINETE_STATUS_PATH,
+  /** Método HTTP de apertura. */
+  molineteOpenMethod: MOLINETE_OPEN_METHOD,
 } as const;
