@@ -23,8 +23,8 @@ prisma/migracion/
 ### alumnos.csv (obligatorio)
 
 ```csv
-dni;nombre;apellido;profesor_dni;activo;clases_total;clases_usadas;pagado
-12345678;María;González;87654321;1;8;3;si
+dni;nombre;apellido;profesor_dni;activo;actividad;clases_total;clases_usadas;pagado
+12345678;María;González;87654321;1;Pilates;8;3;si
 ```
 
 **Campos reconocidos** (acepta variantes):
@@ -36,9 +36,16 @@ dni;nombre;apellido;profesor_dni;activo;clases_total;clases_usadas;pagado
 | Apellido | `apellido`, `surname`, `last_name` |
 | Profesor | `profesor_dni`, `prof_dni`, `dni_profesor` |
 | Activo | `activo`, `estado`, `active` (1/true/si/sí/s) |
+| Actividad | `actividad` (opcional — default `General`) |
 | Clases total | `clases_total`, `clases` |
 | Clases usadas | `clases_usadas`, `clases_realizadas` |
 | Pagado | `pagado`, `pago` (1/true/si/sí/s) |
+
+> **Modelo nuevo:** clases/pago se cargan en una **inscripción a una actividad**
+> (`InscripcionActividad`), no en el alumno. Cada fila crea: Alumno +
+> Actividad (por nombre) + Inscripción. Si viene `profesor_dni`, ese profesor
+> queda **a cargo de la actividad** (relación profesor↔actividad). La
+> frecuencia se infiere del total de clases (ajustable luego desde el panel).
 
 ### profesores.csv (opcional)
 

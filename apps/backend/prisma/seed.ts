@@ -1,10 +1,52 @@
-import { PrismaClient, Rol } from '@prisma/client';
+import { PrismaClient, Rol, Frecuencia } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+async function upsertActividad(nombre: string) {
+  return prisma.actividad.upsert({
+    where: { nombre },
+    update: {},
+    create: { nombre },
+  });
+}
+
+async function upsertAlumno(data: {
+  dni: string;
+  nombre: string;
+  apellido: string;
+  activo?: boolean;
+}) {
+  return prisma.alumno.upsert({
+    where: { dni: data.dni },
+    update: {},
+    create: { activo: true, ...data },
+  });
+}
+
+async function upsertInscripcion(params: {
+  alumnoId: string;
+  actividadId: string;
+  frecuencia: Frecuencia;
+  clasesTotal: number;
+  clasesUsadas: number;
+  pagado: boolean;
+}) {
+  const { alumnoId, actividadId, ...rest } = params;
+  return prisma.inscripcionActividad.upsert({
+    where: { alumnoId_actividadId: { alumnoId, actividadId } },
+    update: { ...rest, fechaPago: rest.pagado ? new Date() : null },
+    create: {
+      alumnoId,
+      actividadId,
+      ...rest,
+      fechaPago: rest.pagado ? new Date() : null,
+    },
+  });
+}
+
 async function main() {
-  // Config global del sistema
+  // Config global del sistema (incluye tiempos de pantalla del molinete)
   await prisma.configSistema.upsert({
     where: { id: 'global' },
     update: {},
@@ -12,31 +54,37 @@ async function main() {
       id: 'global',
       clasesGracia: 2,
       diaVencimiento: 5,
+      tiempoVerde: 4,
+      tiempoAmarillo: 5,
+      tiempoRojo: 6,
     },
   });
   console.log('✓ ConfigSistema');
 
-  // Usuario ADMIN (no vinculado a profesor)
+  // Usuario ADMIN
   const adminPassword = await bcrypt.hash('admin123', 10);
   await prisma.usuario.upsert({
     where: { email: 'admin@cefide.com' },
     update: {},
-    create: {
-      email: 'admin@cefide.com',
-      password: adminPassword,
-      rol: Rol.ADMIN,
-    },
+    create: { email: 'admin@cefide.com', password: adminPassword, rol: Rol.ADMIN },
   });
   console.log('✓ Usuario admin (admin@cefide.com / admin123)');
 
-  // Profesor de prueba
+  // Actividades
+  const pilates = await upsertActividad('Pilates');
+  const spinning = await upsertActividad('Spinning');
+  const funcional = await upsertActividad('Funcional');
+  console.log('✓ Actividades: Pilates, Spinning, Funcional');
+
+  // Profesor de prueba a cargo de Pilates y Spinning (NO Funcional)
   const profesor = await prisma.profesor.upsert({
     where: { dni: '12345678' },
-    update: {},
+    update: { actividades: { set: [{ id: pilates.id }, { id: spinning.id }] } },
     create: {
       dni: '12345678',
       nombre: 'Juan',
       apellido: 'Pérez',
+      actividades: { connect: [{ id: pilates.id }, { id: spinning.id }] },
     },
   });
 
@@ -51,79 +99,43 @@ async function main() {
       profesorId: profesor.id,
     },
   });
-  console.log('✓ Profesor Juan Pérez (juan@cefide.com / profe123)');
+  console.log('✓ Profesor Juan Pérez (juan@cefide.com / profe123) — Pilates + Spinning');
 
-  // Alumno con clases y pago al día (estado VERDE)
-  await prisma.alumno.upsert({
-    where: { dni: '40111222' },
-    update: {},
-    create: {
-      dni: '40111222',
-      nombre: 'Martín',
-      apellido: 'González',
-      activo: true,
-      profesorId: profesor.id,
-      clasesTotal: 12,
-      clasesUsadas: 5,
-      pagado: true,
-      fechaPago: new Date(),
-    },
+  // Martín: pago al día (VERDE) e inscripto en 2 actividades → prueba selección por número
+  const martin = await upsertAlumno({ dni: '40111222', nombre: 'Martín', apellido: 'González' });
+  await upsertInscripcion({
+    alumnoId: martin.id, actividadId: pilates.id,
+    frecuencia: Frecuencia.DOS_VECES, clasesTotal: 12, clasesUsadas: 5, pagado: true,
   });
-  console.log('✓ Alumno Martín González (DNI 40111222) — VERDE, 7 clases restantes');
+  await upsertInscripcion({
+    alumnoId: martin.id, actividadId: spinning.id,
+    frecuencia: Frecuencia.UNA_VEZ, clasesTotal: 5, clasesUsadas: 2, pagado: true,
+  });
+  console.log('✓ Martín González (40111222) — VERDE, Pilates + Spinning (multi-actividad)');
 
-  // Alumno sin pago pero con clases de gracia (estado AMARILLO)
-  await prisma.alumno.upsert({
-    where: { dni: '40333444' },
-    update: {},
-    create: {
-      dni: '40333444',
-      nombre: 'Lucía',
-      apellido: 'Ramírez',
-      activo: true,
-      profesorId: profesor.id,
-      clasesTotal: 8,
-      clasesUsadas: 6,
-      pagado: false,
-      fechaPago: null,
-    },
+  // Lucía: sin pago pero con gracia (AMARILLO)
+  const lucia = await upsertAlumno({ dni: '40333444', nombre: 'Lucía', apellido: 'Ramírez' });
+  await upsertInscripcion({
+    alumnoId: lucia.id, actividadId: pilates.id,
+    frecuencia: Frecuencia.UNA_VEZ, clasesTotal: 8, clasesUsadas: 6, pagado: false,
   });
-  console.log('✓ Alumno Lucía Ramírez (DNI 40333444) — AMARILLO, sin pago, 2 clases gracia');
+  console.log('✓ Lucía Ramírez (40333444) — AMARILLO, sin pago');
 
-  // Alumno bloqueado sin clases (estado ROJO)
-  await prisma.alumno.upsert({
-    where: { dni: '40555666' },
-    update: {},
-    create: {
-      dni: '40555666',
-      nombre: 'Diego',
-      apellido: 'Fernández',
-      activo: true,
-      profesorId: profesor.id,
-      clasesTotal: 8,
-      clasesUsadas: 8,
-      pagado: false,
-      fechaPago: null,
-    },
+  // Diego: sin clases (ROJO)
+  const diego = await upsertAlumno({ dni: '40555666', nombre: 'Diego', apellido: 'Fernández' });
+  await upsertInscripcion({
+    alumnoId: diego.id, actividadId: spinning.id,
+    frecuencia: Frecuencia.UNA_VEZ, clasesTotal: 8, clasesUsadas: 8, pagado: false,
   });
-  console.log('✓ Alumno Diego Fernández (DNI 40555666) — ROJO, sin clases ni pago');
+  console.log('✓ Diego Fernández (40555666) — ROJO, sin clases');
 
-  // Alumno inactivo
-  await prisma.alumno.upsert({
-    where: { dni: '40777888' },
-    update: {},
-    create: {
-      dni: '40777888',
-      nombre: 'Sofía',
-      apellido: 'López',
-      activo: false,
-      profesorId: profesor.id,
-      clasesTotal: 0,
-      clasesUsadas: 0,
-      pagado: false,
-      fechaPago: null,
-    },
+  // Sofía: inactiva e inscripta en Funcional (que NO es de Juan) → Juan no debe verla
+  const sofia = await upsertAlumno({ dni: '40777888', nombre: 'Sofía', apellido: 'López', activo: false });
+  await upsertInscripcion({
+    alumnoId: sofia.id, actividadId: funcional.id,
+    frecuencia: Frecuencia.UNA_VEZ, clasesTotal: 0, clasesUsadas: 0, pagado: false,
   });
-  console.log('✓ Alumno Sofía López (DNI 40777888) — INACTIVA');
+  console.log('✓ Sofía López (40777888) — INACTIVA, Funcional (fuera del scope de Juan)');
 
   console.log('\nSeed completado.');
 }

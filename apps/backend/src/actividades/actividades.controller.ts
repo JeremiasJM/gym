@@ -13,6 +13,7 @@ import { CreateActividadDto } from './dto/create-actividad.dto';
 import { UpdateActividadDto } from './dto/update-actividad.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard, Roles } from '../auth/guards/roles.guard';
+import { CurrentUser, AuthUser } from '../auth/decorators/current-user.decorator';
 import { Rol } from '@prisma/client';
 
 @Controller('actividades')
@@ -21,8 +22,14 @@ export class ActividadesController {
   constructor(private readonly actividadesService: ActividadesService) {}
 
   @Get()
-  findAll(@Query('soloActivas') soloActivas?: string) {
-    return this.actividadesService.findAll(soloActivas === 'true');
+  findAll(
+    @CurrentUser() user: AuthUser,
+    @Query('soloActivas') soloActivas?: string,
+  ) {
+    return this.actividadesService.findAll(
+      soloActivas === 'true',
+      user.rol === Rol.PROFESOR ? (user.profesorId ?? '__none__') : undefined,
+    );
   }
 
   @Get(':id')

@@ -8,6 +8,9 @@ interface UpdateConfigDto {
   clasesDosVeces?: number;
   clasesTresVeces?: number;
   clasesLibre?: number;
+  tiempoVerde?: number;
+  tiempoAmarillo?: number;
+  tiempoRojo?: number;
 }
 
 @Injectable()
@@ -29,6 +32,9 @@ export class ConfigSistemaService {
           clasesDosVeces: 9,
           clasesTresVeces: 13,
           clasesLibre: 30,
+          tiempoVerde: 4,
+          tiempoAmarillo: 5,
+          tiempoRojo: 6,
         },
       });
     }

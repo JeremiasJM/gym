@@ -14,6 +14,7 @@ import { CreateAlumnoDto } from './dto/create-alumno.dto';
 import { UpdateAlumnoDto } from './dto/update-alumno.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard, Roles } from '../auth/guards/roles.guard';
+import { CurrentUser, AuthUser } from '../auth/decorators/current-user.decorator';
 import { Rol } from '@prisma/client';
 
 @Controller('alumnos')
@@ -23,6 +24,7 @@ export class AlumnosController {
 
   @Get()
   findAll(
+    @CurrentUser() user: AuthUser,
     @Query('search') search?: string,
     @Query('activo') activo?: string,
     @Query('page') page?: string,
@@ -33,6 +35,8 @@ export class AlumnosController {
       activo: activo !== undefined ? activo === 'true' : undefined,
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
+      profesorId:
+        user.rol === Rol.PROFESOR ? (user.profesorId ?? '__none__') : undefined,
     });
   }
 

@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Get, Body } from '@nestjs/common';
 import { IsString, IsOptional, IsInt } from 'class-validator';
 import { AccesoService } from './acceso.service';
 
@@ -23,6 +23,16 @@ class ValidarAccesoDto {
 @Controller('acceso')
 export class AccesoController {
   constructor(private readonly accesoService: AccesoService) {}
+
+  /**
+   * GET /api/acceso/config
+   * Config pública para el kiosco: tiempos de pantalla por estado (segundos).
+   * No requiere auth — el kiosco corre sin sesión.
+   */
+  @Get('config')
+  config() {
+    return this.accesoService.getKioscoConfig();
+  }
 
   /**
    * POST /api/acceso/consultar

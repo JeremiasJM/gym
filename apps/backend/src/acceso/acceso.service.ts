@@ -40,6 +40,16 @@ export interface ConsultaAcceso {
 export class AccesoService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** Config pública para el kiosco (sin auth): tiempos de pantalla por estado, en segundos. */
+  async getKioscoConfig() {
+    const config = await this.prisma.configSistema.findUnique({ where: { id: 'global' } });
+    return {
+      tiempoVerde: config?.tiempoVerde ?? 4,
+      tiempoAmarillo: config?.tiempoAmarillo ?? 5,
+      tiempoRojo: config?.tiempoRojo ?? 6,
+    };
+  }
+
   async consultarAcceso(dni: string): Promise<ConsultaAcceso> {
     if (DNIS_COMODIN.includes(dni)) {
       return {
@@ -143,13 +153,17 @@ export class AccesoService {
       };
     }
 
+    // Esta pasada consume una clase (el incremento ocurre en registrarIngreso).
+    // Reportamos las clases que quedarán DESPUÉS de esta pasada.
+    const clasesRestantesPost = clasesRestantes - 1;
+
     if (inscripcion.pagado) {
       return {
         estado: EstadoIngreso.VERDE,
         alumno: { nombre: alumno.nombre, apellido: alumno.apellido, dni },
-        clasesRestantes,
+        clasesRestantes: clasesRestantesPost,
         clasesGraciaRestantes: 0,
-        mensaje: `Acceso permitido — ${clasesRestantes} clase(s) restante(s) en ${actividad}`,
+        mensaje: `Acceso permitido — ${clasesRestantesPost} clase(s) restante(s) en ${actividad}`,
         actividad,
       };
     }
@@ -172,7 +186,7 @@ export class AccesoService {
       return {
         estado: EstadoIngreso.AMARILLO,
         alumno: { nombre: alumno.nombre, apellido: alumno.apellido, dni },
-        clasesRestantes,
+        clasesRestantes: clasesRestantesPost,
         clasesGraciaRestantes,
         mensaje: `${clasesGraciaRestantes} clase(s) de gracia en ${actividad}. Regularizar pago.`,
         actividad,

@@ -13,12 +13,25 @@ export class ProfesoresService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll() {
-    return this.prisma.profesor.findMany({
+    const profesores = await this.prisma.profesor.findMany({
       include: {
         usuario: { select: { id: true, email: true } },
+        actividades: { select: { id: true, nombre: true } },
       },
       orderBy: { apellido: 'asc' },
     });
+
+    return Promise.all(
+      profesores.map(async (p) => {
+        const actividadIds = p.actividades.map((a) => a.id);
+        const alumnos = actividadIds.length
+          ? await this.prisma.alumno.count({
+              where: { inscripciones: { some: { actividadId: { in: actividadIds } } } },
+            })
+          : 0;
+        return { ...p, _count: { alumnos } };
+      }),
+    );
   }
 
   async findOne(id: string) {
@@ -26,6 +39,7 @@ export class ProfesoresService {
       where: { id },
       include: {
         usuario: { select: { id: true, email: true } },
+        actividades: { select: { id: true, nombre: true } },
       },
     });
 
@@ -45,11 +59,16 @@ export class ProfesoresService {
       throw new ConflictException('Ya existe un profesor con ese DNI');
     }
 
-    const { email, password, ...profesorData } = dto;
+    const { email, password, actividadIds, ...profesorData } = dto;
 
     return this.prisma.$transaction(async (tx) => {
       const profesor = await tx.profesor.create({
-        data: profesorData,
+        data: {
+          ...profesorData,
+          ...(actividadIds
+            ? { actividades: { connect: actividadIds.map((id) => ({ id })) } }
+            : {}),
+        },
       });
 
       if (email && password) {
@@ -68,6 +87,7 @@ export class ProfesoresService {
         where: { id: profesor.id },
         include: {
           usuario: { select: { id: true, email: true } },
+          actividades: { select: { id: true, nombre: true } },
         },
       });
     });
@@ -75,13 +95,18 @@ export class ProfesoresService {
 
   async update(id: string, dto: UpdateProfesorDto) {
     const profesor = await this.findOne(id);
-    const { email, password, ...profesorData } = dto;
+    const { email, password, actividadIds, ...profesorData } = dto;
 
     return this.prisma.$transaction(async (tx) => {
-      if (Object.keys(profesorData).length > 0) {
+      if (Object.keys(profesorData).length > 0 || actividadIds !== undefined) {
         await tx.profesor.update({
           where: { id },
-          data: profesorData,
+          data: {
+            ...profesorData,
+            ...(actividadIds !== undefined
+              ? { actividades: { set: actividadIds.map((aid) => ({ id: aid })) } }
+              : {}),
+          },
         });
       }
 
@@ -110,6 +135,7 @@ export class ProfesoresService {
         where: { id },
         include: {
           usuario: { select: { id: true, email: true } },
+          actividades: { select: { id: true, nombre: true } },
         },
       });
     });

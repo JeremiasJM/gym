@@ -9,7 +9,10 @@ function useApiGet<T>(endpoint: string | null, config?: SWRConfiguration) {
     endpoint ? [endpoint, token] : null,
     ([url]: [string]) => api<T>(url, { token: token! }),
     {
-      revalidateOnFocus: false,
+      // Revalida al volver a la pestaña/ventana y al reconectar, así los datos
+      // (ingresos, etc.) se actualizan sin tener que refrescar la página a mano.
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
       ...config,
     },
   );

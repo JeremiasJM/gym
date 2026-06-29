@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEmail, MinLength, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsEmail, MinLength, MaxLength, IsArray } from 'class-validator';
 
 export class CreateProfesorDto {
   @IsString()
@@ -22,4 +22,9 @@ export class CreateProfesorDto {
   @IsString()
   @MinLength(6)
   password?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  actividadIds?: string[];
 }

@@ -18,6 +18,9 @@ export function ConfigPage() {
   const [clasesDosVeces, setClasesDosVeces] = useState('9');
   const [clasesTresVeces, setClasesTresVeces] = useState('13');
   const [clasesLibre, setClasesLibre] = useState('30');
+  const [tiempoVerde, setTiempoVerde] = useState('4');
+  const [tiempoAmarillo, setTiempoAmarillo] = useState('5');
+  const [tiempoRojo, setTiempoRojo] = useState('6');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -29,6 +32,9 @@ export function ConfigPage() {
       setClasesDosVeces(String(config.clasesDosVeces));
       setClasesTresVeces(String(config.clasesTresVeces));
       setClasesLibre(String(config.clasesLibre));
+      setTiempoVerde(String(config.tiempoVerde));
+      setTiempoAmarillo(String(config.tiempoAmarillo));
+      setTiempoRojo(String(config.tiempoRojo));
     }
   }, [config]);
 
@@ -44,6 +50,9 @@ export function ConfigPage() {
         clasesDosVeces: parseInt(clasesDosVeces, 10),
         clasesTresVeces: parseInt(clasesTresVeces, 10),
         clasesLibre: parseInt(clasesLibre, 10),
+        tiempoVerde: parseInt(tiempoVerde, 10),
+        tiempoAmarillo: parseInt(tiempoAmarillo, 10),
+        tiempoRojo: parseInt(tiempoRojo, 10),
       }),
       token: token!,
     });
@@ -144,6 +153,54 @@ export function ConfigPage() {
             </div>
             <p className="text-xs text-cefide-muted">
               Clases asignadas al inscribir un alumno según su frecuencia semanal
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Tiempo de pantalla del molinete</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="tiempoVerde">Verde (seg)</Label>
+                <Input
+                  id="tiempoVerde"
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={tiempoVerde}
+                  onChange={(e) => setTiempoVerde(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tiempoAmarillo">Amarillo (seg)</Label>
+                <Input
+                  id="tiempoAmarillo"
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={tiempoAmarillo}
+                  onChange={(e) => setTiempoAmarillo(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tiempoRojo">Rojo (seg)</Label>
+                <Input
+                  id="tiempoRojo"
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={tiempoRojo}
+                  onChange={(e) => setTiempoRojo(e.target.value)}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-cefide-muted">
+              Segundos que la pantalla del molinete muestra el estado del alumno
+              (verde = acceso ok, amarillo = gracia, rojo = bloqueado) antes de
+              volver a pedir el DNI.
             </p>
           </CardContent>
         </Card>

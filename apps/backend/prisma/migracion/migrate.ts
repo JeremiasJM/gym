@@ -13,12 +13,51 @@
  * Los errores se loguean en prisma/migracion/errores-YYYY-MM-DD.log
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Frecuencia } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
 
 const prisma = new PrismaClient();
 const DATA_DIR = path.join(__dirname, 'data');
+
+// Actividad por defecto cuando el CSV no trae columna `actividad`.
+const ACTIVIDAD_DEFAULT = 'General';
+
+// Cache nombre-actividad -> id para no re-consultar por cada fila.
+const actividadCache = new Map<string, string>();
+
+/** Upsert idempotente de Actividad por nombre, con cache. */
+async function getActividadId(nombre: string): Promise<string> {
+  const key = nombre.trim() || ACTIVIDAD_DEFAULT;
+  const cached = actividadCache.get(key);
+  if (cached) return cached;
+  const act = await prisma.actividad.upsert({
+    where: { nombre: key },
+    update: {},
+    create: { nombre: key },
+  });
+  actividadCache.set(key, act.id);
+  return act.id;
+}
+
+/** Conecta profesor <-> actividad (m2m) de forma idempotente. */
+async function conectarProfesorActividad(profesorId: string, actividadId: string) {
+  await prisma.profesor.update({
+    where: { id: profesorId },
+    data: { actividades: { connect: { id: actividadId } } },
+  });
+}
+
+/**
+ * Infiere la frecuencia a partir del total de clases (los totales del sistema
+ * viejo no traen frecuencia). Sólo es informativa hasta la próxima renovación.
+ */
+function frecuenciaDesdeClases(clasesTotal: number): Frecuencia {
+  if (clasesTotal >= 30) return Frecuencia.LIBRE;
+  if (clasesTotal >= 13) return Frecuencia.TRES_VECES;
+  if (clasesTotal >= 9) return Frecuencia.DOS_VECES;
+  return Frecuencia.UNA_VEZ;
+}
 const LOG_FILE = path.join(
   __dirname,
   `errores-${new Date().toISOString().split('T')[0]}.log`,
@@ -159,8 +198,8 @@ async function migrarAlumnos(profesorMap: Map<string, string>): Promise<void> {
     const clasesTotal = parseInt(row['clases_total'] || row['clases'] || '0', 10);
     const clasesUsadas = parseInt(row['clases_usadas'] || row['clases_realizadas'] || '0', 10);
     const pagado = row['pagado'] || row['pago'] || '';
-    // Campos extra de VERSION8 parser (informativos, no se usan en Alumno actual)
-    const _actividad = row['actividad'] || '';
+    const actividadNombre = row['actividad'] || ACTIVIDAD_DEFAULT;
+    // Campos extra de VERSION8 parser (informativos, no se usan)
     const _domicilio = row['domicilio'] || '';
     const _telefono = row['telefono'] || '';
     const _localidad = row['localidad'] || '';
@@ -215,27 +254,41 @@ async function migrarAlumnos(profesorMap: Map<string, string>): Promise<void> {
       pagado.toLowerCase(),
     );
 
+    const total = isNaN(clasesTotal) ? 0 : clasesTotal;
+    const usadas = isNaN(clasesUsadas) ? 0 : clasesUsadas;
+
     try {
-      await prisma.alumno.upsert({
+      // 1) Alumno (los datos de clases/pago ya NO viven acá)
+      const alumno = await prisma.alumno.upsert({
         where: { dni },
+        update: { nombre, apellido, activo: isActivo },
+        create: { dni, nombre, apellido, activo: isActivo },
+      });
+
+      // 2) Actividad de la inscripción (+ profesor a cargo si corresponde)
+      const actividadId = await getActividadId(actividadNombre);
+      if (profesorId) {
+        await conectarProfesorActividad(profesorId, actividadId);
+      }
+
+      // 3) Inscripción: clases/pago del sistema viejo van acá
+      await prisma.inscripcionActividad.upsert({
+        where: { alumnoId_actividadId: { alumnoId: alumno.id, actividadId } },
         update: {
-          nombre,
-          apellido,
-          profesorId,
-          activo: isActivo,
-          clasesTotal: isNaN(clasesTotal) ? 0 : clasesTotal,
-          clasesUsadas: isNaN(clasesUsadas) ? 0 : clasesUsadas,
+          frecuencia: frecuenciaDesdeClases(total),
+          clasesTotal: total,
+          clasesUsadas: usadas,
           pagado: isPagado,
+          fechaPago: isPagado ? new Date() : null,
         },
         create: {
-          dni,
-          nombre,
-          apellido,
-          profesorId,
-          activo: isActivo,
-          clasesTotal: isNaN(clasesTotal) ? 0 : clasesTotal,
-          clasesUsadas: isNaN(clasesUsadas) ? 0 : clasesUsadas,
+          alumnoId: alumno.id,
+          actividadId,
+          frecuencia: frecuenciaDesdeClases(total),
+          clasesTotal: total,
+          clasesUsadas: usadas,
           pagado: isPagado,
+          fechaPago: isPagado ? new Date() : null,
         },
       });
       imported++;

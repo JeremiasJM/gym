@@ -51,6 +51,7 @@ export function IngresosLogPage() {
 
   const { data } = useApiGet<PaginatedResponse<Ingreso>>(
     `/ingresos?${params.toString()}`,
+    { refreshInterval: 15000 },
   );
   const { data: profesores } = useApiGet<Profesor[]>('/profesores');
 

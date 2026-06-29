@@ -12,6 +12,8 @@ interface FindAllParams {
   activo?: boolean;
   page?: number;
   limit?: number;
+  /** Si viene, limita los alumnos/inscripciones a las actividades de este profesor. */
+  profesorId?: string;
 }
 
 @Injectable()
@@ -19,7 +21,7 @@ export class AlumnosService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(params: FindAllParams) {
-    const { search, activo, page = 1, limit = 20 } = params;
+    const { search, activo, page = 1, limit = 20, profesorId } = params;
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
@@ -36,12 +38,30 @@ export class AlumnosService {
       where.activo = activo;
     }
 
+    // Scope por profesor: solo alumnos inscriptos en las actividades del profesor.
+    let actividadIds: string[] | null = null;
+    if (profesorId) {
+      const prof = await this.prisma.profesor.findUnique({
+        where: { id: profesorId },
+        select: { actividades: { select: { id: true } } },
+      });
+      actividadIds = prof?.actividades.map((a) => a.id) ?? [];
+      where.inscripciones = { some: { actividadId: { in: actividadIds } } };
+    }
+
+    const inscripcionesInclude = {
+      include: { actividad: true },
+      orderBy: { actividad: { nombre: 'asc' } },
+      ...(actividadIds ? { where: { actividadId: { in: actividadIds } } } : {}),
+    } as const;
+
     const [data, total] = await Promise.all([
       this.prisma.alumno.findMany({
         where,
         orderBy: { apellido: 'asc' },
         skip,
         take: limit,
+        include: { inscripciones: inscripcionesInclude },
       }),
       this.prisma.alumno.count({ where }),
     ]);

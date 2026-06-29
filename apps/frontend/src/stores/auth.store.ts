@@ -28,10 +28,27 @@ interface AuthState {
   hydrate: () => void;
 }
 
+/**
+ * Lee la sesión guardada de forma síncrona, antes del primer render.
+ * Evita el race con ProtectedRoute (que en F5 redirigía a /login porque
+ * el estado arrancaba en null y hydrate corría recién en un useEffect).
+ */
+function readStoredSession(): Pick<AuthState, 'token' | 'refreshToken' | 'usuario'> {
+  try {
+    const token = localStorage.getItem('token');
+    const refreshToken = localStorage.getItem('refreshToken');
+    const usuarioStr = localStorage.getItem('usuario');
+    if (token && usuarioStr) {
+      return { token, refreshToken, usuario: JSON.parse(usuarioStr) as Usuario };
+    }
+  } catch {
+    /* localStorage no disponible o JSON corrupto */
+  }
+  return { token: null, refreshToken: null, usuario: null };
+}
+
 export const useAuthStore = create<AuthState>((set, get) => ({
-  token: null,
-  refreshToken: null,
-  usuario: null,
+  ...readStoredSession(),
   isLoading: false,
   error: null,
 
@@ -93,17 +110,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
+  // El estado ya arranca hidratado (readStoredSession). Se mantiene por
+  // compatibilidad / re-sincronización manual.
   hydrate: () => {
-    const token = localStorage.getItem('token');
-    const refreshToken = localStorage.getItem('refreshToken');
-    const usuarioStr = localStorage.getItem('usuario');
-
-    if (token && usuarioStr) {
-      set({
-        token,
-        refreshToken,
-        usuario: JSON.parse(usuarioStr),
-      });
-    }
+    set(readStoredSession());
   },
 }));

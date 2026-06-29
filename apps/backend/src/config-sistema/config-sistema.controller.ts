@@ -25,6 +25,9 @@ export class ConfigSistemaController {
       clasesDosVeces?: number;
       clasesTresVeces?: number;
       clasesLibre?: number;
+      tiempoVerde?: number;
+      tiempoAmarillo?: number;
+      tiempoRojo?: number;
     },
   ) {
     return this.configService.update(data);

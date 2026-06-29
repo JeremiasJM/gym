@@ -35,6 +35,7 @@ model Actividad {
   nombre        String                 @unique
   activo        Boolean                @default(true)
   inscripciones InscripcionActividad[]
+  profesores    Profesor[]             @relation("ProfesorActividades")
   creadoEn      DateTime               @default(now())
 }
 
@@ -74,11 +75,12 @@ model InscripcionActividad {
 }
 
 model Profesor {
-  id       String   @id @default(cuid())
-  dni      String   @unique
-  nombre   String
-  apellido String
-  usuario  Usuario?
+  id          String      @id @default(cuid())
+  dni         String      @unique
+  nombre      String
+  apellido    String
+  usuario     Usuario?
+  actividades Actividad[] @relation("ProfesorActividades")
 }
 
 model Usuario {
@@ -129,4 +131,7 @@ model ConfigSistema {
   clasesDosVeces  Int    @default(9)
   clasesTresVeces Int    @default(13)
   clasesLibre     Int    @default(30)
+  tiempoVerde     Int    @default(4)
+  tiempoAmarillo  Int    @default(5)
+  tiempoRojo      Int    @default(6)
 }

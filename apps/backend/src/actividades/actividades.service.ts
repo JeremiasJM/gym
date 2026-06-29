@@ -11,9 +11,13 @@ import { UpdateActividadDto } from './dto/update-actividad.dto';
 export class ActividadesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(soloActivas?: boolean) {
+  findAll(soloActivas?: boolean, profesorId?: string) {
+    const where: Record<string, unknown> = {};
+    if (soloActivas) where.activo = true;
+    if (profesorId) where.profesores = { some: { id: profesorId } };
+
     return this.prisma.actividad.findMany({
-      where: soloActivas ? { activo: true } : undefined,
+      where: Object.keys(where).length ? where : undefined,
       include: { _count: { select: { inscripciones: true } } },
       orderBy: { nombre: 'asc' },
     });

@@ -46,6 +46,7 @@ export interface Profesor {
   nombre: string;
   apellido: string;
   usuario?: { id: string; email: string } | null;
+  actividades?: { id: string; nombre: string }[];
   _count?: { alumnos: number };
 }
 
@@ -57,6 +58,9 @@ export interface ConfigSistema {
   clasesDosVeces: number;
   clasesTresVeces: number;
   clasesLibre: number;
+  tiempoVerde: number;
+  tiempoAmarillo: number;
+  tiempoRojo: number;
 }
 
 export interface PaginatedResponse<T> {

@@ -27,7 +27,9 @@ interface AccesoResult {
   actividad?: string;
 }
 
-const FEEDBACK_TIMEOUT = 3500;
+// Tiempos por defecto (ms) por si el backend no responde. Se sobreescriben
+// con la config del sistema (GET /acceso/config, en segundos).
+const TIEMPOS_DEFAULT = { VERDE: 4000, AMARILLO: 5000, ROJO: 6000 };
 
 function getMolineteFromUrl(): number {
   const params = new URLSearchParams(window.location.search);
@@ -40,6 +42,7 @@ export function KioscoPage() {
   const [consulta, setConsulta] = useState<ConsultaResult | null>(null);
   const [resultado, setResultado] = useState<AccesoResult | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [tiempos, setTiempos] = useState(TIEMPOS_DEFAULT);
   const inputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const molinete = useRef(getMolineteFromUrl());
@@ -53,13 +56,53 @@ export function KioscoPage() {
     inputRef.current?.focus();
   }, []);
 
+  // Carga los tiempos de pantalla configurables (en segundos) desde el backend.
   useEffect(() => {
-    const feedbackStates: Estado[] = ['VERDE', 'AMARILLO', 'ROJO', 'error'];
-    if (feedbackStates.includes(estado)) {
-      timeoutRef.current = setTimeout(reset, FEEDBACK_TIMEOUT);
+    api<{ tiempoVerde: number; tiempoAmarillo: number; tiempoRojo: number }>('/acceso/config')
+      .then((c) =>
+        setTiempos({
+          VERDE: c.tiempoVerde * 1000,
+          AMARILLO: c.tiempoAmarillo * 1000,
+          ROJO: c.tiempoRojo * 1000,
+        }),
+      )
+      .catch(() => {
+        /* sin conexión: se usan los defaults */
+      });
+  }, []);
+
+  useEffect(() => {
+    const ms =
+      estado === 'VERDE'
+        ? tiempos.VERDE
+        : estado === 'AMARILLO'
+          ? tiempos.AMARILLO
+          : estado === 'ROJO' || estado === 'error'
+            ? tiempos.ROJO
+            : null;
+    if (ms != null) {
+      timeoutRef.current = setTimeout(reset, ms);
       return () => clearTimeout(timeoutRef.current);
     }
-  }, [estado, reset]);
+  }, [estado, reset, tiempos]);
+
+  // Selección de actividad con teclado numérico (1..N) en PCs con teclado numérico.
+  useEffect(() => {
+    if (estado !== 'seleccion' || !consulta) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        reset();
+        return;
+      }
+      const n = parseInt(e.key, 10);
+      if (!Number.isNaN(n) && n >= 1 && n <= consulta!.inscripciones.length) {
+        void handleValidar(consulta!.alumno.dni, consulta!.inscripciones[n - 1].id);
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estado, consulta]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -211,21 +254,28 @@ export function KioscoPage() {
             <h2 className="text-3xl font-bold">
               {consulta.alumno.apellido}, {consulta.alumno.nombre}
             </h2>
-            <p className="text-xl text-cefide-muted mt-2">¿A qué actividad venís hoy?</p>
+            <p className="text-xl text-cefide-muted mt-2">
+              ¿A qué actividad venís hoy? Tocá o presioná el número.
+            </p>
           </div>
 
           <div className="space-y-3">
-            {consulta.inscripciones.map((ins) => (
+            {consulta.inscripciones.map((ins, i) => (
               <button
                 key={ins.id}
                 onClick={() => handleValidar(consulta.alumno.dni, ins.id)}
                 className="w-full py-4 px-6 rounded-xl border-2 border-cefide-border bg-cefide-surface hover:border-cefide-accent hover:bg-cefide-accent/10 transition-colors text-left"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold">{ins.actividad}</span>
-                  <span className="text-lg text-cefide-muted">
-                    {ins.clasesRestantes} clase{ins.clasesRestantes !== 1 ? 's' : ''}
+                <div className="flex items-center gap-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-cefide-accent/20 text-2xl font-bold text-cefide-accent">
+                    {i + 1}
                   </span>
+                  <div className="flex flex-1 items-center justify-between">
+                    <span className="text-2xl font-bold">{ins.actividad}</span>
+                    <span className="text-lg text-cefide-muted">
+                      {ins.clasesRestantes} clase{ins.clasesRestantes !== 1 ? 's' : ''}
+                    </span>
+                  </div>
                 </div>
                 {!ins.pagado && (
                   <p className="text-sm text-cefide-warning mt-1">⚠ Pago pendiente</p>
@@ -238,7 +288,7 @@ export function KioscoPage() {
             onClick={reset}
             className="text-sm text-cefide-muted hover:text-cefide-text transition-colors"
           >
-            Cancelar
+            Cancelar (Esc)
           </button>
         </div>
       )}

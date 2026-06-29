@@ -10,8 +10,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useApiGet } from '@/hooks/use-api';
 import { useAuthStore } from '@/stores/auth.store';
-import type { Profesor } from '@/types';
+import type { Profesor, Actividad } from '@/types';
 
 interface Props {
   open: boolean;
@@ -29,8 +30,11 @@ export function ProfesorFormDialog({ open, onClose, onSuccess, profesor }: Props
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [actividadIds, setActividadIds] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const { data: actividades } = useApiGet<Actividad[]>('/actividades?soloActivas=true');
 
   const isEdit = !!profesor;
 
@@ -41,16 +45,24 @@ export function ProfesorFormDialog({ open, onClose, onSuccess, profesor }: Props
       setApellido(profesor.apellido);
       setEmail(profesor.usuario?.email ?? '');
       setPassword('');
+      setActividadIds(profesor.actividades?.map((a) => a.id) ?? []);
     } else {
       setDni('');
       setNombre('');
       setApellido('');
       setEmail('');
       setPassword('');
+      setActividadIds([]);
     }
     setShowPassword(false);
     setError('');
   }, [profesor, open]);
+
+  function toggleActividad(id: string) {
+    setActividadIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -59,7 +71,7 @@ export function ProfesorFormDialog({ open, onClose, onSuccess, profesor }: Props
 
     try {
       if (isEdit) {
-        const body: Record<string, string> = { nombre, apellido };
+        const body: Record<string, unknown> = { nombre, apellido, actividadIds };
         if (email) body.email = email;
         if (password) body.password = password;
 
@@ -69,7 +81,7 @@ export function ProfesorFormDialog({ open, onClose, onSuccess, profesor }: Props
           token: token!,
         });
       } else {
-        const body: Record<string, string> = { dni, nombre, apellido };
+        const body: Record<string, unknown> = { dni, nombre, apellido, actividadIds };
         if (email) body.email = email;
         if (password) body.password = password;
 
@@ -171,6 +183,33 @@ export function ProfesorFormDialog({ open, onClose, onSuccess, profesor }: Props
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="border-t border-cefide-border pt-4">
+            <p className="text-sm text-cefide-muted mb-3">
+              Actividades a cargo (el profesor solo verá alumnos de estas actividades)
+            </p>
+            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+              {actividades?.map((act) => (
+                <label
+                  key={act.id}
+                  className="flex items-center gap-2 rounded-md border border-cefide-border px-3 py-2 cursor-pointer hover:bg-cefide-surface"
+                >
+                  <input
+                    type="checkbox"
+                    checked={actividadIds.includes(act.id)}
+                    onChange={() => toggleActividad(act.id)}
+                    className="h-4 w-4 accent-cefide-accent"
+                  />
+                  <span className="text-sm">{act.nombre}</span>
+                </label>
+              ))}
+              {actividades && actividades.length === 0 && (
+                <p className="text-sm text-cefide-muted col-span-2">
+                  No hay actividades activas
+                </p>
+              )}
             </div>
           </div>
 
